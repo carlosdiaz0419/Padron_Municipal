@@ -1,0 +1,18 @@
+# Dependencias y compilados locales
+node_modules/
+build/
+dist/
+
+# Variables de entorno con claves reales
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Cachés
+.eslintcache
