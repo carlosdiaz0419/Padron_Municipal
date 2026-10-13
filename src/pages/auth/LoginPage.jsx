@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { login as loginApi } from '../../services/api';
 import { 
-  Building2, 
   User, 
   Lock, 
   Eye, 
@@ -13,28 +12,37 @@ import {
   Shield,
   CheckCircle2,
   ClipboardEdit,
-  SearchCheck,
+  Search,
   Loader2
 } from 'lucide-react';
+
+import tuxtlaHeaderLogo from '../../assets/tuxtla_brand_header.png';
+import tuxtlaHero3D from '../../assets/tuxtla_hero_3d.png';
+import patternTopRight from '../../assets/pattern_top_right_trans.png';
+import patternBottomRight from '../../assets/pattern_bottom_right_trans.png';
+import patternBottomLeft from '../../assets/pattern_bottom_left_trans.png';
+import patternRightSide from '../../assets/pattern_right_side_trans.png';
+
 import './LoginPage.css';
 
 /**
- * LoginPage — Pantalla de inicio de sesión rediseñada con tema blanco y Lucide icons.
+ * LoginPage — Pantalla oficial de acceso con diseño institucional de Tuxtla Gutiérrez,
+ * bordados chiapanecos tradicionales, ilustración 3D del Cañón del Sumidero y tarjeta moderna.
  */
 function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ usuario: '', password: '' });
+  const [form, setForm] = useState({ usuario: 'supervisor', password: '123' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const rolesDemo = [
-    { label: 'Admin', user: 'admin', icon: Shield, desc: 'Control Total' },
-    { label: 'Supervisor', user: 'supervisor', icon: CheckCircle2, desc: 'Validaciones' },
-    { label: 'Capturista', user: 'capturista', icon: ClipboardEdit, desc: 'Captura y Registro' },
-    { label: 'Consultor', user: 'consultor', icon: SearchCheck, desc: 'Solo Lectura' },
+    { label: 'Admin', user: 'admin', icon: Shield },
+    { label: 'Supervisor', user: 'supervisor', icon: CheckCircle2 },
+    { label: 'Capturista', user: 'capturista', icon: ClipboardEdit },
+    { label: 'Consultor', user: 'consultor', icon: Search },
   ];
 
   const handleChange = (e) => {
@@ -66,106 +74,137 @@ function LoginPage() {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <div className="login-header">
-          <div className="login-logo">
-            <Building2 size={26} strokeWidth={2.2} />
+    <div className="tuxtla-login-wrapper">
+      {/* Patrones decorativos de bordado chiapaneco en los bordes */}
+      <img src={patternTopRight} alt="" className="bg-pattern pattern-top-right" />
+      <img src={patternBottomRight} alt="" className="bg-pattern pattern-bottom-right" />
+      <img src={patternBottomLeft} alt="" className="bg-pattern pattern-bottom-left" />
+      <img src={patternRightSide} alt="" className="bg-pattern pattern-right-side" />
+
+      <div className="tuxtla-login-container">
+        {/* COLUMNA IZQUIERDA: Identidad municipal e ilustración 3D */}
+        <div className="login-left-section">
+          <div className="tuxtla-branding-header">
+            <img 
+              src={tuxtlaHeaderLogo} 
+              alt="Tuxtla Gutiérrez Ayuntamiento 2024-2027 | Secretaría de Planeación" 
+              className="tuxtla-logo-img" 
+            />
           </div>
-          <h1>Sistema de Padrón</h1>
-          <p>Beneficiarios de Programas Sociales</p>
+
+          <h1 className="login-main-title">
+            SISTEMA PADRÓN DE<br />
+            BENEFICIARIOS MUNICIPALES
+          </h1>
+
+          <div className="login-hero-artwork">
+            <img 
+              src={tuxtlaHero3D} 
+              alt="Padrón de Beneficiarios Tuxtla Gutiérrez" 
+              className="hero-3d-img" 
+            />
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
-          {error && (
-            <div className="alert alert--error" role="alert">
-              <AlertCircle size={18} style={{ flexShrink: 0 }} />
-              <span>{error}</span>
-            </div>
-          )}
+        {/* COLUMNA DERECHA: Tarjeta de inicio de sesión */}
+        <div className="login-right-section">
+          <div className="tuxtla-auth-card">
+            <div className="card-top-accent"></div>
 
-          <div className="login-field">
-            <label htmlFor="usuario">Usuario</label>
-            <div className="input-with-icon">
-              <span className="input-icon-left">
-                <User size={18} />
-              </span>
-              <input
-                id="usuario"
-                name="usuario"
-                type="text"
-                value={form.usuario}
-                onChange={handleChange}
-                placeholder="Nombre de usuario"
-                autoComplete="username"
-                autoFocus
-              />
+            <div className="card-header-block">
+              <h2 className="card-login-title">Iniciar Sesión</h2>
+              <p className="card-login-subtitle">Acceso al Sistema</p>
             </div>
-          </div>
 
-          <div className="login-field">
-            <label htmlFor="password">Contraseña</label>
-            <div className="input-with-icon">
-              <span className="input-icon-left">
-                <Lock size={18} />
-              </span>
-              <input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                value={form.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                autoComplete="current-password"
-              />
-              <button
-                type="button"
-                className="input-icon-right"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            <form onSubmit={handleSubmit} className="tuxtla-auth-form">
+              {error && (
+                <div className="tuxtla-alert-error" role="alert">
+                  <AlertCircle size={18} className="alert-icon" />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div className="form-input-group">
+                <label htmlFor="usuario" className="field-label">Usuario</label>
+                <div className="input-field-wrapper">
+                  <User size={18} className="field-left-icon" />
+                  <input
+                    id="usuario"
+                    name="usuario"
+                    type="text"
+                    value={form.usuario}
+                    onChange={handleChange}
+                    placeholder="Nombre de usuario"
+                    autoComplete="username"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-input-group">
+                <label htmlFor="password" className="field-label">Contraseña</label>
+                <div className="input-field-wrapper">
+                  <Lock size={18} className="field-left-icon" />
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={form.password}
+                    onChange={handleChange}
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="field-toggle-password"
+                    onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" className="btn-tuxtla-submit" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 size={18} className="spin-loader" />
+                    <span>Verificando...</span>
+                  </>
+                ) : (
+                  <>
+                    <LogIn size={18} />
+                    <span>Ingresar al Sistema</span>
+                  </>
+                )}
               </button>
+            </form>
+
+            <div className="demo-accounts-container">
+              <div className="demo-accounts-header">
+                USUARIOS DE PRUEBA (CLIC PARA AUTOCOMPLETAR)
+              </div>
+              <div className="demo-pills-grid">
+                {rolesDemo.map((r) => {
+                  const Icon = r.icon;
+                  const isSelected = form.usuario.toLowerCase() === r.user;
+                  return (
+                    <button
+                      type="button"
+                      key={r.user}
+                      onClick={() => handleSelectDemo(r.user)}
+                      className={`demo-pill-btn ${isSelected ? 'demo-pill-btn--active' : ''}`}
+                    >
+                      <Icon size={16} className="pill-icon" />
+                      <span>{r.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="demo-pwd-hint">Contraseña por defecto: 1234</p>
             </div>
           </div>
-
-          <button type="submit" className="btn-login-submit" disabled={loading}>
-            {loading ? (
-              <>
-                <Loader2 size={18} className="spinner" />
-                <span>Verificando...</span>
-              </>
-            ) : (
-              <>
-                <LogIn size={18} />
-                <span>Ingresar al Sistema</span>
-              </>
-            )}
-          </button>
-        </form>
-
-        <div className="demo-accounts">
-          <div className="demo-accounts__title">Usuarios de Prueba (Clic para autocompletar)</div>
-          <div className="demo-chips">
-            {rolesDemo.map((r) => {
-              const Icon = r.icon;
-              const isSelected = form.usuario.toLowerCase() === r.user;
-              return (
-                <button
-                  type="button"
-                  key={r.user}
-                  onClick={() => handleSelectDemo(r.user)}
-                  className={`demo-chip ${isSelected ? 'demo-chip--active' : ''}`}
-                >
-                  <span className="demo-chip__icon">
-                    <Icon size={16} />
-                  </span>
-                  <span>{r.label}</span>
-                </button>
-              );
-            })}
-          </div>
-          <p className="demo-hint">Contraseña por defecto: <strong>1234</strong></p>
         </div>
       </div>
     </div>
