@@ -16,18 +16,21 @@ import {
   Loader2
 } from 'lucide-react';
 
-import tuxtlaHeaderLogo from '../../assets/tuxtla_brand_header.png';
-import tuxtlaHero3D from '../../assets/tuxtla_hero_3d.png';
-import patternTopRight from '../../assets/pattern_top_right_trans.png';
-import patternBottomRight from '../../assets/pattern_bottom_right_trans.png';
-import patternBottomLeft from '../../assets/pattern_bottom_left_trans.png';
-import patternRightSide from '../../assets/pattern_right_side_trans.png';
+import fondoImg from '../../assets/fondo.jpeg';
+import ilustracionImg from '../../assets/Ilustracion.png';
+import banerImg from '../../assets/baner.png';
 
 import './LoginPage.css';
 
 /**
- * LoginPage — Pantalla oficial de acceso con diseño institucional de Tuxtla Gutiérrez,
- * bordados chiapanecos tradicionales, ilustración 3D del Cañón del Sumidero y tarjeta moderna.
+ * LoginPage — Pantalla oficial de acceso al Sistema de Padrón de Beneficiarios Municipales.
+ * 
+ * Distribución institucional:
+ * - Header (esquina superior izquierda): baner.png (PNG transparente oficial)
+ * - Fondo completo: fondo.jpeg (Bordados tradicionales chiapanecos)
+ * - Columna Izquierda (centrada): Títulos oficiales e Ilustración (Ilustracion.png transparente)
+ * - Columna Derecha (centrada): Tarjeta blanca flotante de Iniciar Sesión
+ * - Recursivo / Responsivo para computadoras y móviles.
  */
 function LoginPage() {
   const { login } = useAuth();
@@ -74,40 +77,44 @@ function LoginPage() {
   };
 
   return (
-    <div className="tuxtla-login-wrapper">
-      {/* Patrones decorativos de bordado chiapaneco en los bordes */}
-      <img src={patternTopRight} alt="" className="bg-pattern pattern-top-right" />
-      <img src={patternBottomRight} alt="" className="bg-pattern pattern-bottom-right" />
-      <img src={patternBottomLeft} alt="" className="bg-pattern pattern-bottom-left" />
-      <img src={patternRightSide} alt="" className="bg-pattern pattern-right-side" />
+    <div 
+      className="tuxtla-login-wrapper" 
+      style={{ backgroundImage: `url(${fondoImg})` }}
+    >
+      {/* ── HEADER SUPERIOR IZQUIERDO ── */}
+      <header className="tuxtla-header">
+        <img 
+          src={banerImg} 
+          alt="Tuxtla Gutiérrez - Ayuntamiento 2024-2027 | Secretaría de Planeación" 
+          className="tuxtla-header-logo" 
+        />
+      </header>
 
-      <div className="tuxtla-login-container">
-        {/* COLUMNA IZQUIERDA: Identidad municipal e ilustración 3D */}
-        <div className="login-left-section">
-          <div className="tuxtla-branding-header">
-            <img 
-              src={tuxtlaHeaderLogo} 
-              alt="Tuxtla Gutiérrez Ayuntamiento 2024-2027 | Secretaría de Planeación" 
-              className="tuxtla-logo-img" 
-            />
+      {/* ── CONTENIDO PRINCIPAL EN 2 COLUMNAS CENTRADAS ── */}
+      <main className="tuxtla-login-container">
+        {/* COLUMNA IZQUIERDA: Títulos e Ilustración centrada */}
+        <section className="login-left-section">
+          <div className="login-titles-block">
+            <h1 className="login-main-title">
+              SISTEMA PADRÓN DE<br />
+              BENEFICIARIOS MUNICIPALES
+            </h1>
+            <p className="login-subtitle-tag">
+              SECRETARÍA DE PLANEACIÓN • AYUNTAMIENTO DE TUXTLA GUTIÉRREZ
+            </p>
           </div>
 
-          <h1 className="login-main-title">
-            SISTEMA PADRÓN DE<br />
-            BENEFICIARIOS MUNICIPALES
-          </h1>
-
-          <div className="login-hero-artwork">
+          <div className="login-illustration-container">
             <img 
-              src={tuxtlaHero3D} 
-              alt="Padrón de Beneficiarios Tuxtla Gutiérrez" 
-              className="hero-3d-img" 
+              src={ilustracionImg} 
+              alt="Ilustración Institucional del Cañón del Sumidero y Beneficiarios" 
+              className="login-illustration-img" 
             />
           </div>
-        </div>
+        </section>
 
-        {/* COLUMNA DERECHA: Tarjeta de inicio de sesión */}
-        <div className="login-right-section">
+        {/* COLUMNA DERECHA: Tarjeta de Acceso centrada */}
+        <section className="login-right-section">
           <div className="tuxtla-auth-card">
             <div className="card-top-accent"></div>
 
@@ -205,8 +212,8 @@ function LoginPage() {
               <p className="demo-pwd-hint">Contraseña por defecto: 1234</p>
             </div>
           </div>
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   );
 }

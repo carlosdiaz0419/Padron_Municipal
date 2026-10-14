@@ -5,12 +5,12 @@ import AppRouter from './routes/AppRouter';
 import './index.css';
 
 /**
- * App.js — Componente raíz de la aplicación.
- * Envuelve la app con el proveedor de autenticación y el router principal.
+ * App.jsx — Componente raíz de la aplicación.
+ * Configura el enrutador con las banderas de React Router v7 para evitar advertencias de consola.
  */
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AuthProvider>
         <AppRouter />
       </AuthProvider>
