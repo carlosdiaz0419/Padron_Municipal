@@ -28,8 +28,16 @@ function ConsultorBusqueda() {
     setLoading(true);
     setError('');
     try {
-      const data = await getBeneficiarios(filtros);
-      setResultados(data?.beneficiarios || []);
+      const params = { ...filtros };
+      const trimmed = (filtros.busqueda || '').trim();
+      if (/^[A-Z]{4}\d{6}[HM][A-Z0-9]{7}$/i.test(trimmed)) {
+        params.curp = trimmed.toUpperCase();
+        params.q = '';
+      } else if (trimmed) {
+        params.q = trimmed;
+      }
+      const data = await getBeneficiarios(params);
+      setResultados(data?.beneficiarios || (Array.isArray(data) ? data : []));
       setBuscado(true);
     } catch (err) {
       setError(err.message);

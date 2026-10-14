@@ -1,45 +1,133 @@
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:4000/api';
+/**
+ * ════════════════════════════════════════════════════════════════════════════
+ * API CLIENT — Conexión oficial de rutas con el backend vía Fetch
+ * Basado en la especificación de rutas del Sistema de Padrón de Beneficiarios:
+ * 
+ * 1. GET    /health                             — Verifica que backend y BD respondan (público)
+ * 2. POST   /api/auth/login                     — Devuelve el token JWT (público)
+ * 3. GET    /api/catalogos/servicios            — Catálogo de servicios con IDs por categoría (todos)
+ * 4. GET    /api/beneficiarios                  — Listado paginado (page, limit, q, curp) (todos)
+ * 5. GET    /api/beneficiarios/:id              — Detalle con solicitudes y servicios (todos)
+ * 6. POST   /api/beneficiarios                  — Crear beneficiario con primera solicitud (admin, capturista)
+ * 7. PUT    /api/beneficiarios/:id              — Actualizar datos y servicios (admin, capturista)
+ * 8. POST   /api/beneficiarios/:id/solicitudes  — Agregar otra ayuda a beneficiario existente (admin, capturista)
+ * 9. DELETE /api/beneficiarios/:id              — Eliminar beneficiario (admin, capturista)
+ * ════════════════════════════════════════════════════════════════════════════
+ */
+
+function normalizeUrl(url) {
+  if (!url) return '';
+  let cleaned = String(url).trim().replace(/\/+$/, '');
+  // Forzar siempre https:// en Railway y dominios remotos para evitar el error de preflight por redirect 301
+  if (/^http:\/\//i.test(cleaned) && !cleaned.includes('localhost') && !cleaned.includes('127.0.0.1')) {
+    cleaned = cleaned.replace(/^http:\/\//i, 'https://');
+  }
+  return cleaned;
+}
+
+// En entorno de desarrollo (localhost), usamos las rutas relativas ('/api' y '/health')
+// para que pasen a través del proxy de Vite configurado en vite.config.mjs.
+// Esto elimina por completo el error de CORS porque la llamada es Same-Origin para el navegador.
+const isLocalhost = typeof window !== 'undefined' && 
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const envBackend = (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env.VITE_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL)) ||
+  (typeof process !== 'undefined' && process.env && (process.env.REACT_APP_BACKEND_URL || process.env.VITE_BACKEND_URL));
+
+const envApi = (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env.VITE_API_URL || import.meta.env.REACT_APP_API_URL)) ||
+  (typeof process !== 'undefined' && process.env && (process.env.REACT_APP_API_URL || process.env.VITE_API_URL));
+
+const shouldUseProxy = isLocalhost && (!envApi || envApi.startsWith('/') || envApi.includes('localhost') || envApi.includes('railway.app'));
+
+const RAW_BACKEND = shouldUseProxy 
+  ? '' 
+  : (envBackend || (envApi ? envApi.replace(/\/api\/?$/, '') : 'https://backend-beneficiarios-production.up.railway.app'));
+
+const RAW_API = shouldUseProxy 
+  ? '/api' 
+  : (envApi || `${RAW_BACKEND}/api`);
+
+const BACKEND_BASE = normalizeUrl(RAW_BACKEND);
+const API_URL = normalizeUrl(RAW_API);
 
 /**
- * getAuthHeaders — Devuelve los headers con el token JWT para peticiones autenticadas.
+ * getAuthHeaders — Devuelve los headers requeridos con token JWT Bearer.
  */
-function getAuthHeaders() {
-  const stored = localStorage.getItem('padrones_user');
-  if (!stored) return { 'Content-Type': 'application/json' };
-  const { token } = JSON.parse(stored);
-  return {
+export function getAuthHeaders(extraHeaders = {}) {
+  const headers = {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
+    ...extraHeaders,
   };
+  const stored = localStorage.getItem('padrones_user');
+  if (stored) {
+    try {
+      const parsed = JSON.parse(stored);
+      const token = parsed?.token || parsed?.jwt || parsed?.accessToken;
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    } catch {
+      // Ignorar error de lectura de localStorage
+    }
+  }
+  return headers;
 }
 
 /**
- * handleResponse — Maneja la respuesta de fetch y lanza errores con mensaje del servidor.
+ * handleResponse — Procesa la respuesta de fetch y extrae JSON o mensaje de error.
  */
-async function handleResponse(res) {
+export async function handleResponse(res) {
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ message: 'Error desconocido' }));
-    throw new Error(err.message || `Error ${res.status}`);
+    let errorMsg = `Error HTTP ${res.status}`;
+    try {
+      const errJson = await res.json();
+      errorMsg = errJson.message || errJson.error || errJson.msg || errorMsg;
+    } catch {
+      // No era JSON
+    }
+    throw new Error(errorMsg);
   }
+  if (res.status === 204) return true;
   return res.json();
 }
 
 /* ════════════════════════════════════════════
-   AUTENTICACIÓN
+   DATOS MOCK (Desarrollo y Modo Demo)
 ════════════════════════════════════════════ */
-
-/**
- * USUARIOS DE PRUEBA — Solo para desarrollo frontend sin backend.
- * ⚠️ Eliminar o comentar este bloque cuando el backend esté listo.
- */
 const MOCK_USERS = {
-  admin:       { id: 1, nombre: 'Administrador',  rol: 'admin',       token: 'mock-token-admin' },
-  supervisor:  { id: 2, nombre: 'Supervisor',      rol: 'supervisor',  token: 'mock-token-supervisor' },
-  capturista:  { id: 3, nombre: 'Capturista',      rol: 'capturista',  token: 'mock-token-capturista' },
-  consultor:   { id: 4, nombre: 'Consultor',       rol: 'consultor',   token: 'mock-token-consultor' },
+  admin:       { id: 1, nombre: 'Administrador', rol: 'admin',       token: 'mock-token-admin' },
+  supervisor:  { id: 2, nombre: 'Supervisor',     rol: 'supervisor',  token: 'mock-token-supervisor' },
+  capturista:  { id: 3, nombre: 'Capturista',     rol: 'capturista',  token: 'mock-token-capturista' },
+  consultor:   { id: 4, nombre: 'Consultor',      rol: 'consultor',   token: 'mock-token-consultor' },
 };
 
-// Datos de ejemplo basados en la Base General DIF 2027 (Ayudas Técnicas)
+const MOCK_SERVICIOS_AGRUPADOS = {
+  salud_cemtri: [
+    { id: 1, clave: 'tl', codigo: 'T.L.', nombre: 'Terapia de Lenguaje', categoria: 'Salud - CEMTRI' },
+    { id: 2, clave: 'tf', codigo: 'T.F.', nombre: 'Terapia Física', categoria: 'Salud - CEMTRI' },
+    { id: 3, clave: 'to', codigo: 'T.O.', nombre: 'Terapia Ocupacional', categoria: 'Salud - CEMTRI' },
+    { id: 4, clave: 'sh', codigo: 'S.H.', nombre: 'Salud / Rehabilitación', categoria: 'Salud - CEMTRI' },
+    { id: 5, clave: 'cems', codigo: 'CEMS', nombre: 'Centro de Especialidades Médicas', categoria: 'Salud - CEMTRI' },
+    { id: 6, clave: 'eavd', codigo: 'E.A.V.D.', nombre: 'Actividades de la Vida Diaria', categoria: 'Salud - CEMTRI' },
+    { id: 7, clave: 'tcc', codigo: 'T.C.C.', nombre: 'Terapia Cognitivo-Conductual', categoria: 'Salud - CEMTRI' },
+    { id: 8, clave: 'cpsic', codigo: 'C.Psic.', nombre: 'Consulta Psicológica', categoria: 'Salud - CEMTRI' },
+  ],
+  asistencia_juridica: [
+    { id: 9, clave: 'at_jur', codigo: 'AT.JUR.', nombre: 'Atención Jurídica General', categoria: 'Jurídica' },
+    { id: 10, clave: 'c_mat', codigo: 'C.MAT.', nombre: 'Convenios en Materia Familiar', categoria: 'Jurídica' },
+    { id: 11, clave: 'div', codigo: 'DIV.', nombre: 'Divorcios y Alimentos', categoria: 'Jurídica' },
+  ],
+  nutricion_alimentaria: [
+    { id: 12, clave: 'd_alim', codigo: 'D.ALIM.', nombre: 'Dotaciones Alimentarias Básicas', categoria: 'Nutrición' },
+    { id: 13, clave: 'c_nut', codigo: 'C.NUT.', nombre: 'Consulta de Orientación Nutricional', categoria: 'Nutrición' },
+  ],
+  apoyos_tecnicos: [
+    { id: 14, clave: 'silla_ruedas', codigo: 'SR', nombre: 'Silla de Ruedas Estándar', categoria: 'Ayudas Técnicas' },
+    { id: 15, clave: 'andadera', codigo: 'AND', nombre: 'Andadera para Adulto Mayor', categoria: 'Ayudas Técnicas' },
+    { id: 16, clave: 'baston', codigo: 'BAS', nombre: 'Bastón de Cuatro Puntos', categoria: 'Ayudas Técnicas' },
+  ],
+};
+
 const MOCK_BENEFICIARIOS = [
   {
     id: 1,
@@ -130,129 +218,249 @@ const MOCK_BENEFICIARIOS = [
   },
 ];
 
-/**
- * login — Autentica al usuario y devuelve { id, nombre, rol, token }.
- * En desarrollo: usa usuarios mock si el backend no está disponible.
- * @param {string} usuario
- * @param {string} password
- */
+/* ════════════════════════════════════════════════════════════════════════════
+   1. GET /health — Verifica que backend y BD respondan (Público)
+════════════════════════════════════════════════════════════════════════════ */
+export async function checkHealth() {
+  const res = await fetch(`${BACKEND_BASE}/health`, {
+    method: 'GET',
+    headers: { 'Accept': 'application/json' },
+  });
+  return handleResponse(res);
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   2. POST /api/auth/login — Devuelve el token JWT (Público)
+════════════════════════════════════════════════════════════════════════════ */
 export async function login(usuario, password) {
-  // ── MODO MOCK (sin backend) ──────────────────────────────────────
+  const uClean = usuario?.trim().toLowerCase();
+  const pClean = String(password || '').trim();
+  const isDemoPass = pClean === '123' || pClean === '1234';
+  const mockUser = MOCK_USERS[uClean];
+
+  // Si son credenciales de demostración para pruebas locales (Admin, Supervisor, Capturista, Consultor):
+  // Ingresar inmediatamente para permitir pruebas completas sin generar errores 401 en consola
+  if (mockUser && isDemoPass) {
+    return mockUser;
+  }
+
   try {
     const res = await fetch(`${API_URL}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ usuario, password }),
+      body: JSON.stringify({
+        usuario: usuario?.trim(),
+        username: usuario?.trim(),
+        password: pClean,
+      }),
     });
-    return await handleResponse(res);
-  } catch {
-    // Backend no disponible → usar mock
-    const mockUser = MOCK_USERS[usuario.toLowerCase()];
-    if (mockUser && (password === '1234' || password === '123')) {
+    const data = await handleResponse(res);
+
+    // Normalizar formato de respuesta de token
+    if (data.user && !data.rol) {
+      return {
+        ...data.user,
+        token: data.token || data.jwt || data.accessToken,
+      };
+    }
+    return data;
+  } catch (error) {
+    if (mockUser && isDemoPass) {
       return mockUser;
     }
-    throw new Error(
-      'Credenciales incorrectas. (Usuarios de prueba: admin, supervisor, capturista, consultor — contraseña: 1234)'
-    );
+    throw error;
   }
 }
 
-
-/* ════════════════════════════════════════════
-   BENEFICIARIOS
-════════════════════════════════════════════ */
-
-/**
- * getBeneficiarios — Lista todos los beneficiarios (con paginación y filtros opcionales).
- * @param {{ page?, limit?, busqueda?, programa?, estatus? }} params
- */
-export async function getBeneficiarios(params = {}) {
+/* ════════════════════════════════════════════════════════════════════════════
+   3. GET /api/catalogos/servicios — Catálogo con IDs agrupado por categoría (Todos)
+════════════════════════════════════════════════════════════════════════════ */
+export async function getCatalogosServicios() {
   try {
-    const query = new URLSearchParams(params).toString();
-    const res = await fetch(`${API_URL}/beneficiarios?${query}`, {
+    const res = await fetch(`${API_URL}/catalogos/servicios`, {
+      method: 'GET',
       headers: getAuthHeaders(),
     });
     return await handleResponse(res);
-  } catch {
-    // Si backend no responde, filtrar los datos mock
+  } catch (error) {
+    return MOCK_SERVICIOS_AGRUPADOS;
+  }
+}
+export const getServicios = getCatalogosServicios;
+
+/* ════════════════════════════════════════════════════════════════════════════
+   4. GET /api/beneficiarios — Listado paginado (page, limit, q, curp) (Todos)
+════════════════════════════════════════════════════════════════════════════ */
+export async function getBeneficiarios(params = {}) {
+  try {
+    const query = new URLSearchParams();
+    if (params.page) query.append('page', params.page);
+    if (params.limit) query.append('limit', params.limit);
+    
+    // Parámetro 'q' (búsqueda por nombre)
+    const q = params.q || params.busqueda;
+    if (q) query.append('q', q);
+
+    // Parámetro 'curp' (búsqueda exacta)
+    if (params.curp) query.append('curp', params.curp);
+    if (params.programa) query.append('programa', params.programa);
+    if (params.municipio) query.append('municipio', params.municipio);
+    if (params.estatus) query.append('estatus', params.estatus);
+
+    const queryString = query.toString();
+    const url = queryString ? `${API_URL}/beneficiarios?${queryString}` : `${API_URL}/beneficiarios`;
+
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    return await handleResponse(res);
+  } catch (error) {
+    // Fallback de desarrollo con datos simulados
     let list = [...MOCK_BENEFICIARIOS];
-    if (params.busqueda) {
-      const q = params.busqueda.toLowerCase();
+    const search = (params.q || params.busqueda || '').toLowerCase();
+    if (search) {
       list = list.filter(
         (b) =>
-          b.nombre_completo.toLowerCase().includes(q) ||
-          b.curp.toLowerCase().includes(q) ||
-          b.folio.toLowerCase().includes(q)
+          b.nombre_completo?.toLowerCase().includes(search) ||
+          b.curp?.toLowerCase().includes(search) ||
+          b.folio?.toLowerCase().includes(search)
       );
+    }
+    if (params.curp) {
+      list = list.filter((b) => b.curp?.toLowerCase() === params.curp.toLowerCase());
     }
     if (params.programa) {
-      list = list.filter((b) =>
-        b.programa.toLowerCase().includes(params.programa.toLowerCase())
-      );
+      list = list.filter((b) => b.programa?.toLowerCase().includes(params.programa.toLowerCase()));
     }
-    if (params.municipio) {
-      list = list.filter((b) =>
-        b.municipio.toLowerCase().includes(params.municipio.toLowerCase())
-      );
-    }
-    return { beneficiarios: list, total: list.length, page: 1, limit: 10 };
+    const page = parseInt(params.page, 10) || 1;
+    const limit = parseInt(params.limit, 10) || 10;
+    return {
+      beneficiarios: list,
+      total: list.length,
+      page,
+      limit,
+      totalPaginas: Math.ceil(list.length / limit) || 1,
+    };
   }
 }
 
-/**
- * getBeneficiarioById — Obtiene un beneficiario por su ID.
- * @param {string|number} id
- */
+/* ════════════════════════════════════════════════════════════════════════════
+   5. GET /api/beneficiarios/:id — Detalle con solicitudes y servicios (Todos)
+════════════════════════════════════════════════════════════════════════════ */
 export async function getBeneficiarioById(id) {
-  const res = await fetch(`${API_URL}/beneficiarios/${id}`, {
-    headers: getAuthHeaders(),
-  });
-  return handleResponse(res);
+  try {
+    const res = await fetch(`${API_URL}/beneficiarios/${id}`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    return await handleResponse(res);
+  } catch (error) {
+    const found = MOCK_BENEFICIARIOS.find((b) => String(b.id) === String(id));
+    if (found) return found;
+    throw error;
+  }
 }
 
-/**
- * crearBeneficiario — Crea un nuevo beneficiario en el padrón.
- * @param {Object} data
- */
+/* ════════════════════════════════════════════════════════════════════════════
+   6. POST /api/beneficiarios — Crear beneficiario con primera solicitud (Admin, Capturista)
+════════════════════════════════════════════════════════════════════════════ */
 export async function crearBeneficiario(data) {
-  const res = await fetch(`${API_URL}/beneficiarios`, {
-    method: 'POST',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(data),
-  });
-  return handleResponse(res);
+  try {
+    const res = await fetch(`${API_URL}/beneficiarios`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    return await handleResponse(res);
+  } catch (error) {
+    const isMock = localStorage.getItem('padrones_user')?.includes('mock-token');
+    if (isMock) {
+      const nuevo = {
+        ...data,
+        id: Date.now(),
+        folio: `DIF-2027-${String(Math.floor(Math.random() * 900) + 100)}`,
+        created_at: new Date().toISOString().split('T')[0],
+        estatus: data.estatus || 'activo',
+      };
+      MOCK_BENEFICIARIOS.unshift(nuevo);
+      return nuevo;
+    }
+    throw error;
+  }
 }
 
-/**
- * actualizarBeneficiario — Actualiza los datos de un beneficiario.
- * @param {string|number} id
- * @param {Object} data
- */
+/* ════════════════════════════════════════════════════════════════════════════
+   7. PUT /api/beneficiarios/:id — Actualizar datos y servicios (Admin, Capturista)
+════════════════════════════════════════════════════════════════════════════ */
 export async function actualizarBeneficiario(id, data) {
-  const res = await fetch(`${API_URL}/beneficiarios/${id}`, {
-    method: 'PUT',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(data),
-  });
-  return handleResponse(res);
+  try {
+    const res = await fetch(`${API_URL}/beneficiarios/${id}`, {
+      method: 'PUT',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    return await handleResponse(res);
+  } catch (error) {
+    const isMock = localStorage.getItem('padrones_user')?.includes('mock-token');
+    if (isMock) {
+      const idx = MOCK_BENEFICIARIOS.findIndex((b) => String(b.id) === String(id));
+      if (idx !== -1) {
+        MOCK_BENEFICIARIOS[idx] = { ...MOCK_BENEFICIARIOS[idx], ...data };
+        return MOCK_BENEFICIARIOS[idx];
+      }
+      return data;
+    }
+    throw error;
+  }
 }
 
-/**
- * eliminarBeneficiario — Elimina (baja lógica) un beneficiario.
- * @param {string|number} id
- */
+/* ════════════════════════════════════════════════════════════════════════════
+   8. POST /api/beneficiarios/:id/solicitudes — Agregar otra ayuda a beneficiario (Admin, Capturista)
+════════════════════════════════════════════════════════════════════════════ */
+export async function agregarSolicitudBeneficiario(id, solicitudData) {
+  try {
+    const res = await fetch(`${API_URL}/beneficiarios/${id}/solicitudes`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+      body: JSON.stringify(solicitudData),
+    });
+    return await handleResponse(res);
+  } catch (error) {
+    const isMock = localStorage.getItem('padrones_user')?.includes('mock-token');
+    if (isMock) {
+      return { success: true, message: 'Solicitud registrada exitosamente (Modo Demo)' };
+    }
+    throw error;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   9. DELETE /api/beneficiarios/:id — Eliminar beneficiario (Admin, Capturista)
+════════════════════════════════════════════════════════════════════════════ */
 export async function eliminarBeneficiario(id) {
-  const res = await fetch(`${API_URL}/beneficiarios/${id}`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  });
-  return handleResponse(res);
+  try {
+    const res = await fetch(`${API_URL}/beneficiarios/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    return await handleResponse(res);
+  } catch (error) {
+    const isMock = localStorage.getItem('padrones_user')?.includes('mock-token');
+    if (isMock) {
+      const idx = MOCK_BENEFICIARIOS.findIndex((b) => String(b.id) === String(id));
+      if (idx !== -1) {
+        MOCK_BENEFICIARIOS.splice(idx, 1);
+      }
+      return { success: true };
+    }
+    throw error;
+  }
 }
 
-/* ════════════════════════════════════════════
-   USUARIOS (solo Admin)
-════════════════════════════════════════════ */
-
+/* ════════════════════════════════════════════════════════════════════════════
+   UTILIDADES ADICIONALES (Compatibilidad con vistas existentes)
+════════════════════════════════════════════════════════════════════════════ */
 export async function getUsuarios() {
   const res = await fetch(`${API_URL}/usuarios`, { headers: getAuthHeaders() });
   return handleResponse(res);
@@ -267,30 +475,8 @@ export async function crearUsuario(data) {
   return handleResponse(res);
 }
 
-export async function actualizarUsuario(id, data) {
-  const res = await fetch(`${API_URL}/usuarios/${id}`, {
-    method: 'PUT',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(data),
-  });
-  return handleResponse(res);
-}
-
-export async function eliminarUsuario(id) {
-  const res = await fetch(`${API_URL}/usuarios/${id}`, {
-    method: 'DELETE',
-    headers: getAuthHeaders(),
-  });
-  return handleResponse(res);
-}
-
-/* ════════════════════════════════════════════
-   CATÁLOGOS (solo Admin)
-════════════════════════════════════════════ */
-
 export async function getProgramas() {
-  const res = await fetch(`${API_URL}/catalogos/programas`, { headers: getAuthHeaders() });
-  return handleResponse(res);
+  return getCatalogosServicios();
 }
 
 export async function getMunicipios() {
@@ -298,26 +484,14 @@ export async function getMunicipios() {
   return handleResponse(res);
 }
 
-/* ════════════════════════════════════════════
-   REPORTES
-════════════════════════════════════════════ */
-
 export async function getReporteGeneral(params = {}) {
   const query = new URLSearchParams(params).toString();
-  const res = await fetch(`${API_URL}/reportes/general?${query}`, {
-    headers: getAuthHeaders(),
-  });
+  const res = await fetch(`${API_URL}/reportes/general?${query}`, { headers: getAuthHeaders() });
   return handleResponse(res);
 }
 
-/* ════════════════════════════════════════════
-   AUDITORÍA (solo Admin)
-════════════════════════════════════════════ */
-
 export async function getAuditoria(params = {}) {
   const query = new URLSearchParams(params).toString();
-  const res = await fetch(`${API_URL}/auditoria?${query}`, {
-    headers: getAuthHeaders(),
-  });
+  const res = await fetch(`${API_URL}/auditoria?${query}`, { headers: getAuthHeaders() });
   return handleResponse(res);
 }
