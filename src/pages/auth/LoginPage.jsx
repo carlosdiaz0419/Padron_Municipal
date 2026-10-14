@@ -13,7 +13,10 @@ import {
   CheckCircle2,
   ClipboardEdit,
   Search,
-  Loader2
+  Loader2,
+  Sparkles,
+  KeyRound,
+  Check
 } from 'lucide-react';
 
 import fondoImg from '../../assets/fondo.jpeg';
@@ -42,10 +45,10 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const rolesDemo = [
-    { label: 'Admin', user: 'admin', icon: Shield },
-    { label: 'Supervisor', user: 'supervisor', icon: CheckCircle2 },
-    { label: 'Capturista', user: 'capturista', icon: ClipboardEdit },
-    { label: 'Consultor', user: 'consultor', icon: Search },
+    { label: 'Admin', user: 'admin', desc: 'Control Total', icon: Shield, theme: 'admin' },
+    { label: 'Supervisor', user: 'supervisor', desc: 'Validación', icon: CheckCircle2, theme: 'supervisor' },
+    { label: 'Capturista', user: 'capturista', desc: 'Registro', icon: ClipboardEdit, theme: 'capturista' },
+    { label: 'Consultor', user: 'consultor', desc: 'Solo Lectura', icon: Search, theme: 'consultor' },
   ];
 
   const handleChange = (e) => {
@@ -189,10 +192,16 @@ function LoginPage() {
             </form>
 
             <div className="demo-accounts-container">
-              <div className="demo-accounts-header">
-                USUARIOS DE PRUEBA (CLIC PARA AUTOCOMPLETAR)
+              <div className="demo-accounts-header-wrap">
+                <div className="demo-header-line"></div>
+                <span className="demo-accounts-badge">
+                  <Sparkles size={12} className="demo-badge-icon" />
+                  Acceso Rápido Demo
+                </span>
+                <div className="demo-header-line"></div>
               </div>
-              <div className="demo-pills-grid">
+
+              <div className="demo-roles-grid">
                 {rolesDemo.map((r) => {
                   const Icon = r.icon;
                   const isSelected = form.usuario.toLowerCase() === r.user;
@@ -201,15 +210,31 @@ function LoginPage() {
                       type="button"
                       key={r.user}
                       onClick={() => handleSelectDemo(r.user)}
-                      className={`demo-pill-btn ${isSelected ? 'demo-pill-btn--active' : ''}`}
+                      className={`demo-role-card demo-role-${r.theme} ${isSelected ? 'is-selected' : ''}`}
+                      title={`Autocompletar como ${r.label}`}
                     >
-                      <Icon size={16} className="pill-icon" />
-                      <span>{r.label}</span>
+                      <div className="role-icon-box">
+                        <Icon size={16} />
+                      </div>
+                      <div className="role-info-box">
+                        <span className="role-name">{r.label}</span>
+                        <span className="role-desc">{r.desc}</span>
+                      </div>
+                      {isSelected && (
+                        <div className="role-check-indicator">
+                          <Check size={11} strokeWidth={3} />
+                        </div>
+                      )}
                     </button>
                   );
                 })}
               </div>
-              <p className="demo-pwd-hint">Contraseña por defecto: 1234</p>
+
+              <div className="demo-pwd-footer">
+                <KeyRound size={13} className="pwd-key-icon" />
+                <span>Contraseña demo:</span>
+                <code className="demo-pwd-code">1234</code>
+              </div>
             </div>
           </div>
         </section>

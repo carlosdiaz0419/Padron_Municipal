@@ -14,7 +14,7 @@ function ConsultorLayout() {
   const navigate = useNavigate();
 
   return (
-    <div className="layout">
+    <div className="layout layout--consultor">
       <aside className="sidebar sidebar--consultor">
         <div className="sidebar__header">
           <div className="sidebar__logo-badge">

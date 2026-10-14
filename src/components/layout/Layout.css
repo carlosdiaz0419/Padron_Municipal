@@ -33,19 +33,20 @@
 }
 
 .sidebar__logo-badge {
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
-.sidebar--admin .sidebar__logo-badge      { background: #eff6ff; color: #2563eb; }
-.sidebar--supervisor .sidebar__logo-badge { background: #ecfdf5; color: #059669; }
-.sidebar--capturista .sidebar__logo-badge { background: #fff7ed; color: #ea580c; }
-.sidebar--consultor .sidebar__logo-badge  { background: #faf5ff; color: #9333ea; }
+.sidebar--admin .sidebar__logo-badge      { background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; }
+.sidebar--supervisor .sidebar__logo-badge { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
+.sidebar--capturista .sidebar__logo-badge { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
+.sidebar--consultor .sidebar__logo-badge  { background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
 
 .sidebar__header-info {
   display: flex;
@@ -54,10 +55,11 @@
 
 .sidebar__header h2 {
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: 800;
   color: #0f172a;
   letter-spacing: -0.01em;
   margin: 0;
+  line-height: 1.2;
 }
 
 .sidebar__rol-pill {
@@ -65,63 +67,72 @@
   align-items: center;
   gap: 0.3rem;
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-top: 0.2rem;
+  letter-spacing: 0.05em;
+  margin-top: 0.25rem;
 }
 
-.sidebar--admin .sidebar__rol-pill      { color: #2563eb; }
+.sidebar--admin .sidebar__rol-pill      { color: #4f46e5; }
 .sidebar--supervisor .sidebar__rol-pill { color: #059669; }
-.sidebar--capturista .sidebar__rol-pill { color: #ea580c; }
-.sidebar--consultor .sidebar__rol-pill  { color: #9333ea; }
+.sidebar--capturista .sidebar__rol-pill { color: #d97706; }
+.sidebar--consultor .sidebar__rol-pill  { color: #0284c7; }
 
 /* ── Menú de Navegación ─────────────────────────── */
 .sidebar__nav {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 1.25rem 0.75rem;
-  gap: 0.3rem;
+  padding: 1.25rem 0.85rem;
+  gap: 0.4rem;
   overflow-y: auto;
 }
 
 .sidebar__nav a {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 0.85rem;
+  gap: 0.8rem;
+  padding: 0.7rem 0.95rem;
   color: #64748b;
-  font-size: 0.88rem;
-  font-weight: 500;
-  border-radius: 8px;
-  transition: all 0.15s ease-in-out;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 10px;
+  border-left: 3.5px solid transparent;
+  transition: all 0.18s ease-in-out;
 }
 
 .sidebar__nav a:hover {
-  background: #f1f5f9;
+  background: #f8fafc;
   color: #0f172a;
+  transform: translateX(2px);
 }
 
-.sidebar__nav a.active {
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-weight: 600;
+.sidebar--admin .sidebar__nav a.active {
+  background: #eef2ff;
+  color: #4f46e5;
+  border-left-color: #4f46e5;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.08);
 }
 
 .sidebar--supervisor .sidebar__nav a.active {
   background: #ecfdf5;
-  color: #047857;
+  color: #059669;
+  border-left-color: #059669;
+  box-shadow: 0 1px 3px rgba(5, 150, 105, 0.08);
 }
 
 .sidebar--capturista .sidebar__nav a.active {
-  background: #fff7ed;
-  color: #c2410c;
+  background: #fffbeb;
+  color: #d97706;
+  border-left-color: #d97706;
+  box-shadow: 0 1px 3px rgba(217, 119, 6, 0.08);
 }
 
 .sidebar--consultor .sidebar__nav a.active {
-  background: #faf5ff;
-  color: #7e22ce;
+  background: #f0f9ff;
+  color: #0284c7;
+  border-left-color: #0284c7;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.08);
 }
 
 .sidebar__nav-icon {
@@ -149,18 +160,21 @@
 }
 
 .sidebar__avatar {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: #f1f5f9;
-  color: #475569;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.82rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 800;
   flex-shrink: 0;
 }
+
+.sidebar--admin .sidebar__avatar      { background: #eef2ff; color: #4f46e5; border: 1.5px solid #c7d2fe; }
+.sidebar--supervisor .sidebar__avatar { background: #ecfdf5; color: #059669; border: 1.5px solid #a7f3d0; }
+.sidebar--capturista .sidebar__avatar { background: #fffbeb; color: #d97706; border: 1.5px solid #fde68a; }
+.sidebar--consultor .sidebar__avatar  { background: #f0f9ff; color: #0284c7; border: 1.5px solid #bae6fd; }
 
 .sidebar__user-details {
   display: flex;
@@ -201,11 +215,48 @@
   border-color: #fecaca;
 }
 
-/* ── Contenedor Principal ────────────────────────── */
+/* ── Contenedor Principal con Luces Ambientales (Mesh Gradients) ── */
 .layout__main {
   margin-left: 260px;
   flex: 1;
   padding: 2.25rem 2.75rem;
-  background: #f8fafc;
+  background-color: #f8fafc;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.06) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(14, 165, 233, 0.06) 0px, transparent 50%),
+    radial-gradient(at 50% 100%, rgba(245, 158, 11, 0.04) 0px, transparent 50%);
+  background-attachment: fixed;
   min-height: 100vh;
+}
+
+/* 1. Admin — Mesh Índigo Real & Púrpura */
+.layout--admin .layout__main {
+  background-image: 
+    radial-gradient(at 5% 5%, rgba(99, 102, 241, 0.13) 0px, transparent 55%),
+    radial-gradient(at 95% 15%, rgba(168, 85, 247, 0.09) 0px, transparent 50%),
+    radial-gradient(at 50% 95%, rgba(59, 130, 246, 0.07) 0px, transparent 55%);
+}
+
+/* 2. Supervisor — Mesh Verde Esmeralda & Cyan */
+.layout--supervisor .layout__main {
+  background-image: 
+    radial-gradient(at 5% 5%, rgba(16, 185, 129, 0.13) 0px, transparent 55%),
+    radial-gradient(at 95% 15%, rgba(6, 182, 212, 0.09) 0px, transparent 50%),
+    radial-gradient(at 50% 95%, rgba(34, 197, 94, 0.07) 0px, transparent 55%);
+}
+
+/* 3. Capturista — Mesh Ámbar Chiapaneco & Naranja Cálido */
+.layout--capturista .layout__main {
+  background-image: 
+    radial-gradient(at 5% 5%, rgba(245, 158, 11, 0.14) 0px, transparent 55%),
+    radial-gradient(at 95% 15%, rgba(249, 115, 22, 0.09) 0px, transparent 50%),
+    radial-gradient(at 50% 95%, rgba(234, 88, 12, 0.07) 0px, transparent 55%);
+}
+
+/* 4. Consultor — Mesh Azul Océano & Violeta */
+.layout--consultor .layout__main {
+  background-image: 
+    radial-gradient(at 5% 5%, rgba(14, 165, 233, 0.14) 0px, transparent 55%),
+    radial-gradient(at 95% 15%, rgba(147, 51, 234, 0.09) 0px, transparent 50%),
+    radial-gradient(at 50% 95%, rgba(56, 189, 248, 0.07) 0px, transparent 55%);
 }

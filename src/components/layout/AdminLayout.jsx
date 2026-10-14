@@ -25,7 +25,7 @@ function AdminLayout() {
   };
 
   return (
-    <div className="layout">
+    <div className="layout layout--admin">
       <aside className="sidebar sidebar--admin">
         <div className="sidebar__header">
           <div className="sidebar__logo-badge">

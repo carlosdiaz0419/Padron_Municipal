@@ -15,7 +15,7 @@ function CapturistaLayout() {
   const navigate = useNavigate();
 
   return (
-    <div className="layout">
+    <div className="layout layout--capturista">
       <aside className="sidebar sidebar--capturista">
         <div className="sidebar__header">
           <div className="sidebar__logo-badge">

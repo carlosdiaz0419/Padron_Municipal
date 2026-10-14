@@ -15,7 +15,7 @@ function SupervisorLayout() {
   const navigate = useNavigate();
 
   return (
-    <div className="layout">
+    <div className="layout layout--supervisor">
       <aside className="sidebar sidebar--supervisor">
         <div className="sidebar__header">
           <div className="sidebar__logo-badge">
