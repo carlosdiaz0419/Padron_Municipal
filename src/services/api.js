@@ -98,6 +98,9 @@ export async function handleResponse(res) {
     } catch {
       // No era JSON
     }
+    if (res.status === 500) {
+      errorMsg = `Error 500 en Railway: ${errorMsg}. Verifica en tu panel de Railway que la base de datos esté encendida y conectada.`;
+    }
     throw new Error(errorMsg);
   }
   if (res.status === 204) return true;
@@ -151,7 +154,7 @@ export async function login(usuario, password) {
     resolved.dependencia = 
       resolved.rol === 'admin' ? 'Dirección General DIF' :
       resolved.rol === 'supervisor' ? 'Dirección de Asistencia Social' :
-      resolved.rol === 'capturista' ? 'Coordinación CEMTRI y Salud' : 'Secretaría de Planeación Municipal';
+      'Coordinación CEMTRI y Salud';
   }
   return resolved;
 }

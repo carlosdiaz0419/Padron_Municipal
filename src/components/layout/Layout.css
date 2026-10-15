@@ -46,7 +46,6 @@
 .sidebar--admin .sidebar__logo-badge      { background: #eef2ff; color: #4f46e5; border: 1px solid #c7d2fe; }
 .sidebar--supervisor .sidebar__logo-badge { background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }
 .sidebar--capturista .sidebar__logo-badge { background: #fffbeb; color: #d97706; border: 1px solid #fde68a; }
-.sidebar--consultor .sidebar__logo-badge  { background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; }
 
 .sidebar__header-info {
   display: flex;
@@ -76,7 +75,6 @@
 .sidebar--admin .sidebar__rol-pill      { color: #4f46e5; }
 .sidebar--supervisor .sidebar__rol-pill { color: #059669; }
 .sidebar--capturista .sidebar__rol-pill { color: #d97706; }
-.sidebar--consultor .sidebar__rol-pill  { color: #0284c7; }
 
 /* ── Menú de Navegación ─────────────────────────── */
 .sidebar__nav {
@@ -128,13 +126,6 @@
   box-shadow: 0 1px 3px rgba(217, 119, 6, 0.08);
 }
 
-.sidebar--consultor .sidebar__nav a.active {
-  background: #f0f9ff;
-  color: #0284c7;
-  border-left-color: #0284c7;
-  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.08);
-}
-
 .sidebar__nav-icon {
   display: flex;
   align-items: center;
@@ -174,7 +165,6 @@
 .sidebar--admin .sidebar__avatar      { background: #eef2ff; color: #4f46e5; border: 1.5px solid #c7d2fe; }
 .sidebar--supervisor .sidebar__avatar { background: #ecfdf5; color: #059669; border: 1.5px solid #a7f3d0; }
 .sidebar--capturista .sidebar__avatar { background: #fffbeb; color: #d97706; border: 1.5px solid #fde68a; }
-.sidebar--consultor .sidebar__avatar  { background: #f0f9ff; color: #0284c7; border: 1.5px solid #bae6fd; }
 
 .sidebar__user-details {
   display: flex;
@@ -265,12 +255,4 @@
     radial-gradient(at 5% 5%, rgba(245, 158, 11, 0.14) 0px, transparent 55%),
     radial-gradient(at 95% 15%, rgba(249, 115, 22, 0.09) 0px, transparent 50%),
     radial-gradient(at 50% 95%, rgba(234, 88, 12, 0.07) 0px, transparent 55%);
-}
-
-/* 4. Consultor — Mesh Azul Océano & Violeta */
-.layout--consultor .layout__main {
-  background-image: 
-    radial-gradient(at 5% 5%, rgba(14, 165, 233, 0.14) 0px, transparent 55%),
-    radial-gradient(at 95% 15%, rgba(147, 51, 234, 0.09) 0px, transparent 50%),
-    radial-gradient(at 50% 95%, rgba(56, 189, 248, 0.07) 0px, transparent 55%);
 }

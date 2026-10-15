@@ -6,6 +6,7 @@ import {
   agregarSolicitudBeneficiario,
   getCatalogosServicios 
 } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { 
   Plus, 
   Edit3, 
@@ -30,6 +31,12 @@ import {
  * - POST /api/beneficiarios/:id/solicitudes
  */
 function CapturistaBeneficiarios() {
+  const { hasPermission } = useAuth();
+  const canCrear = hasPermission('beneficiarios.crear');
+  const canEditar = hasPermission('beneficiarios.editar');
+  const canEliminar = hasPermission('beneficiarios.eliminar');
+  const canSolicitudes = hasPermission('beneficiarios.solicitudes');
+
   const [beneficiarios, setBeneficiarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -187,10 +194,12 @@ function CapturistaBeneficiarios() {
           <h1 className="page-title">Padrón de Beneficiarios</h1>
           <p className="page-subtitle">Listado oficial de ciudadanos registrados (GET /api/beneficiarios).</p>
         </div>
-        <Link to="/capturista/beneficiarios/nuevo" className="btn-primary">
-          <Plus size={16} />
-          <span>Nuevo Beneficiario</span>
-        </Link>
+        {canCrear && (
+          <Link to="/capturista/beneficiarios/nuevo" className="btn-primary">
+            <Plus size={16} />
+            <span>Nuevo Beneficiario</span>
+          </Link>
+        )}
       </div>
 
       {actionSuccess && (
@@ -289,31 +298,37 @@ function CapturistaBeneficiarios() {
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
                         {/* Botón Nueva Solicitud (POST /api/beneficiarios/:id/solicitudes) */}
-                        <button 
-                          onClick={() => handleOpenSolicitudModal(b)} 
-                          className="btn-sm" 
-                          title="Agregar otra ayuda o servicio"
-                          style={{ background: '#f8fafc', color: '#0284c7', borderColor: '#bae6fd' }}
-                        >
-                          <FilePlus2 size={13} />
-                          <span>+ Ayuda</span>
-                        </button>
+                        {canSolicitudes && (
+                          <button 
+                            onClick={() => handleOpenSolicitudModal(b)} 
+                            className="btn-sm" 
+                            title="Agregar otra ayuda o servicio"
+                            style={{ background: '#f8fafc', color: '#0284c7', borderColor: '#bae6fd' }}
+                          >
+                            <FilePlus2 size={13} />
+                            <span>+ Ayuda</span>
+                          </button>
+                        )}
 
                         {/* Botón Editar (PUT /api/beneficiarios/:id) */}
-                        <Link to={`/capturista/beneficiarios/editar/${b.id}`} className="btn-sm" title="Editar expediente">
-                          <Edit3 size={13} />
-                          <span>Editar</span>
-                        </Link>
+                        {canEditar && (
+                          <Link to={`/capturista/beneficiarios/editar/${b.id}`} className="btn-sm" title="Editar expediente">
+                            <Edit3 size={13} />
+                            <span>Editar</span>
+                          </Link>
+                        )}
 
                         {/* Botón Eliminar (DELETE /api/beneficiarios/:id) */}
-                        <button 
-                          onClick={() => handleEliminar(b.id, b.nombre_completo || b.nombre)} 
-                          className="btn-sm" 
-                          title="Eliminar beneficiario"
-                          style={{ color: '#ef4444', borderColor: '#fecaca', background: '#fff5f5' }}
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                        {canEliminar && (
+                          <button 
+                            onClick={() => handleEliminar(b.id, b.nombre_completo || b.nombre)} 
+                            className="btn-sm" 
+                            title="Eliminar beneficiario"
+                            style={{ color: '#ef4444', borderColor: '#fecaca', background: '#fff5f5' }}
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

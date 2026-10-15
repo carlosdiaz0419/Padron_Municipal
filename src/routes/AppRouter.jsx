@@ -9,7 +9,6 @@ import LoginPage from '../pages/auth/LoginPage';
 import AdminLayout from '../components/layout/AdminLayout';
 import SupervisorLayout from '../components/layout/SupervisorLayout';
 import CapturistaLayout from '../components/layout/CapturistaLayout';
-import ConsultorLayout from '../components/layout/ConsultorLayout';
 
 // Páginas — Admin
 import AdminDashboard from '../pages/admin/AdminDashboard';
@@ -28,33 +27,36 @@ import CapturistaDashboard from '../pages/capturista/CapturistaDashboard';
 import CapturistaBeneficiarios from '../pages/capturista/CapturistaBeneficiarios';
 import CapturistaFormulario from '../pages/capturista/CapturistaFormulario';
 
-// Páginas — Consultor
-import ConsultorDashboard from '../pages/consultor/ConsultorDashboard';
-import ConsultorBusqueda from '../pages/consultor/ConsultorBusqueda';
-
 // Componentes de protección de rutas
 import ProtectedRoute from './ProtectedRoute';
 import RoleRoute from './RoleRoute';
 
+const VALID_ROLES = ['admin', 'supervisor', 'capturista'];
+
 /**
- * AppRouter — Define toda la estructura de rutas de la aplicación.
- *
- * Rutas protegidas: requieren autenticación y rol específico.
- * Rutas públicas: solo Login.
+ * AppRouter — Define toda la estructura de rutas de la aplicación de forma determinista y segura.
  */
 function AppRouter() {
   const { isAuthenticated, user, loading } = useAuth();
 
   if (loading) {
-    return <div style={{ padding: '2rem', textAlign: 'center' }}>Cargando...</div>;
+    return (
+      <div style={{ display: 'flex', height: '100vh', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0b1d3a', color: '#ffffff' }}>
+        Cargando sistema...
+      </div>
+    );
   }
+
+  const role = user?.rol?.toLowerCase();
+  const isValidSession = isAuthenticated && user && VALID_ROLES.includes(role);
+  const homePath = isValidSession ? `/${role}` : '/login';
 
   return (
     <Routes>
       {/* ── RUTA PÚBLICA ─────────────────────────────────────────── */}
       <Route
         path="/login"
-        element={isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />}
+        element={isValidSession ? <Navigate to={homePath} replace /> : <LoginPage />}
       />
 
       {/* ── ADMIN ────────────────────────────────────────────────── */}
@@ -93,28 +95,9 @@ function AppRouter() {
         </Route>
       </Route>
 
-      {/* ── CONSULTOR ────────────────────────────────────────────── */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<RoleRoute allowedRoles={['consultor']} />}>
-          <Route path="/consultor" element={<ConsultorLayout />}>
-            <Route index element={<ConsultorDashboard />} />
-            <Route path="busqueda" element={<ConsultorBusqueda />} />
-          </Route>
-        </Route>
-      </Route>
-
-      {/* ── REDIRECCIÓN RAÍZ según rol ───────────────────────────── */}
-      <Route
-        path="/"
-        element={
-          isAuthenticated
-            ? <Navigate to={`/${user?.rol}`} replace />
-            : <Navigate to="/login" replace />
-        }
-      />
-
-      {/* ── 404 ──────────────────────────────────────────────────── */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* ── REDIRECCIÓN RAÍZ Y RUTAS NO ENCONTRADAS ──────────────── */}
+      <Route path="/" element={<Navigate to={homePath} replace />} />
+      <Route path="*" element={<Navigate to={homePath} replace />} />
     </Routes>
   );
 }

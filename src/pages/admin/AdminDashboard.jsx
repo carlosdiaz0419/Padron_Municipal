@@ -122,7 +122,7 @@ function AdminDashboard() {
             </div>
             <h3 className="module-card__title">Usuarios y Accesos</h3>
             <p className="module-card__desc">
-              Gestiona cuentas de capturistas, supervisores, consultores y administradores con permisos por rol.
+              Gestiona cuentas de capturistas, supervisores y administradores con permisos por rol.
             </p>
             <div className="module-card__footer">
               <span>Ingresar al módulo</span>

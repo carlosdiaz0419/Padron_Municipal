@@ -36,7 +36,6 @@ export const ROLES = {
   admin: 'Administrador',
   supervisor: 'Supervisor',
   capturista: 'Capturista',
-  consultor: 'Consultor',
 };
 
 /**

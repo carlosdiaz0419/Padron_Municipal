@@ -1,29 +1,42 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { checkPermission } from '../services/permissions';
+
+const VALID_ROLES = ['admin', 'supervisor', 'capturista'];
 
 /**
- * AuthContext — Contexto global de autenticación.
- *
- * Proporciona:
- *   - user: objeto del usuario autenticado (nombre, rol, token)
- *   - login(userData): guarda la sesión en localStorage y en el estado
- *   - logout(): limpia la sesión
- *   - isAuthenticated: boolean rápido para verificar si hay sesión activa
+ * AuthContext — Contexto global de autenticación con validación estricta de sesión y permisos.
  */
-
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [, setPermVersion] = useState(0);
 
-  // Al montar: recuperar sesión guardada
+  // Escuchar actualizaciones dinámicas de permisos en vivo
+  useEffect(() => {
+    const handlePermUpdate = () => setPermVersion((v) => v + 1);
+    window.addEventListener('padrones_permissions_updated', handlePermUpdate);
+    return () => window.removeEventListener('padrones_permissions_updated', handlePermUpdate);
+  }, []);
+
+  // Al montar: recuperar sesión guardada y validar consistencia
   useEffect(() => {
     const stored = localStorage.getItem('padrones_user');
     if (stored) {
       try {
-        setUser(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        const role = parsed?.rol?.toLowerCase?.();
+        if (parsed && VALID_ROLES.includes(role)) {
+          setUser({ ...parsed, rol: role });
+        } else {
+          // Si los datos guardados en localStorage son inválidos o no tienen rol reconocido, limpiar
+          localStorage.removeItem('padrones_user');
+          setUser(null);
+        }
       } catch {
         localStorage.removeItem('padrones_user');
+        setUser(null);
       }
     }
     setLoading(false);
@@ -34,8 +47,11 @@ export function AuthProvider({ children }) {
    * @param {{ id, nombre, rol, token }} userData
    */
   const login = (userData) => {
-    setUser(userData);
-    localStorage.setItem('padrones_user', JSON.stringify(userData));
+    if (!userData) return;
+    const role = (userData.rol || 'capturista').toLowerCase();
+    const normalized = { ...userData, rol: role };
+    setUser(normalized);
+    localStorage.setItem('padrones_user', JSON.stringify(normalized));
   };
 
   /**
@@ -46,11 +62,21 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('padrones_user');
   };
 
+  /**
+   * hasPermission — Valida si el usuario actual tiene concedido un permiso específico.
+   * @param {string} permissionId (ej. 'beneficiarios.eliminar')
+   * @returns {boolean}
+   */
+  const hasPermission = (permissionId) => {
+    return checkPermission(user, permissionId);
+  };
+
   const value = {
     user,
     login,
     logout,
-    isAuthenticated: !!user,
+    hasPermission,
+    isAuthenticated: !!user && VALID_ROLES.includes(user?.rol),
     loading,
   };
 

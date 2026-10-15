@@ -12,8 +12,13 @@ import {
   FolderPlus 
 } from 'lucide-react';
 import { getCatalogosServicios } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 function AdminCatalogos() {
+  const { hasPermission } = useAuth();
+  const canCrear = hasPermission('catalogos.crear');
+  const canEditar = hasPermission('catalogos.editar');
+
   const [servicios, setServicios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -112,14 +117,16 @@ function AdminCatalogos() {
           <h1 className="page-title">Catálogos de Servicios</h1>
           <p className="page-subtitle">Catálogo institucional de servicios y apoyos con IDs por categoría (GET /api/catalogos/servicios).</p>
         </div>
-        <button 
-          onClick={() => setShowCreateModal(true)} 
-          className="btn-primary"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem', cursor: 'pointer' }}
-        >
-          <Plus size={16} />
-          <span>Nuevo Servicio</span>
-        </button>
+        {canCrear && (
+          <button 
+            onClick={() => setShowCreateModal(true)} 
+            className="btn-primary"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem', cursor: 'pointer' }}
+          >
+            <Plus size={16} />
+            <span>Nuevo Servicio</span>
+          </button>
+        )}
       </div>
 
       {notification && (
@@ -174,15 +181,19 @@ function AdminCatalogos() {
                       </span>
                     </td>
                     <td style={{ textAlign: 'right' }}>
-                      <button 
-                        onClick={() => setConfiguringService({ ...s })}
-                        className="btn-sm" 
-                        style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-                        title="Configurar servicio"
-                      >
-                        <Settings size={13} />
-                        <span>Configurar</span>
-                      </button>
+                      {canEditar ? (
+                        <button 
+                          onClick={() => setConfiguringService({ ...s })}
+                          className="btn-sm" 
+                          style={{ cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
+                          title="Configurar servicio"
+                        >
+                          <Settings size={13} />
+                          <span>Configurar</span>
+                        </button>
+                      ) : (
+                        <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Solo lectura</span>
+                      )}
                     </td>
                   </tr>
                 ))

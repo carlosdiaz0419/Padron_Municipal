@@ -19,8 +19,13 @@ import {
   Building2
 } from 'lucide-react';
 import { getBeneficiarios, actualizarBeneficiario } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 function SupervisorValidacion() {
+  const { hasPermission } = useAuth();
+  const canAprobar = hasPermission('validacion.aprobar');
+  const canRechazar = hasPermission('validacion.rechazar');
+
   const [expedientes, setExpedientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('pendientes'); // 'pendientes' | 'validados' | 'rechazados'
@@ -460,34 +465,40 @@ function SupervisorValidacion() {
                       {p.estatus === 'pendiente' ? (
                         <>
                           {/* Botón Aprobar */}
+                          {canAprobar && (
+                            <button
+                              onClick={() => handleAprobar(p)}
+                              className="btn-sm"
+                              title="Aprobar expediente y dar alta activa"
+                              style={{ background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0', fontWeight: 600 }}
+                            >
+                              <Check size={14} /> Aprobar
+                            </button>
+                          )}
+
+                          {/* Botón Rechazar */}
+                          {canRechazar && (
+                            <button
+                              onClick={() => handleAbrirRechazo(p)}
+                              className="btn-sm"
+                              title="Rechazar expediente o solicitar corrección"
+                              style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca', fontWeight: 600 }}
+                            >
+                              <X size={14} /> Rechazar
+                            </button>
+                          )}
+                        </>
+                      ) : p.estatus === 'rechazado' ? (
+                        canAprobar && (
                           <button
                             onClick={() => handleAprobar(p)}
                             className="btn-sm"
-                            title="Aprobar expediente y dar alta activa"
-                            style={{ background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0', fontWeight: 600 }}
+                            title="Reactivar y aprobar expediente"
+                            style={{ background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0' }}
                           >
-                            <Check size={14} /> Aprobar
+                            <Check size={13} /> Reconsiderar
                           </button>
-
-                          {/* Botón Rechazar */}
-                          <button
-                            onClick={() => handleAbrirRechazo(p)}
-                            className="btn-sm"
-                            title="Rechazar expediente o solicitar corrección"
-                            style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca', fontWeight: 600 }}
-                          >
-                            <X size={14} /> Rechazar
-                          </button>
-                        </>
-                      ) : p.estatus === 'rechazado' ? (
-                        <button
-                          onClick={() => handleAprobar(p)}
-                          className="btn-sm"
-                          title="Reactivar y aprobar expediente"
-                          style={{ background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0' }}
-                        >
-                          <Check size={13} /> Reconsiderar
-                        </button>
+                        )
                       ) : (
                         <span style={{ fontSize: '0.78rem', color: '#059669', fontWeight: 500, padding: '0.2rem 0.5rem' }}>
                           ✓ Validado
@@ -666,24 +677,28 @@ function SupervisorValidacion() {
               </button>
 
               <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <button
-                  onClick={() => {
-                    handleAbrirRechazo(inspectModal);
-                  }}
-                  className="btn-sm"
-                  style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca', fontWeight: 600 }}
-                >
-                  <X size={14} /> Rechazar Solicitud
-                </button>
-                <button
-                  onClick={() => {
-                    handleAprobar(inspectModal);
-                  }}
-                  className="btn-primary"
-                  style={{ background: '#059669', borderColor: '#059669' }}
-                >
-                  <Check size={16} /> Aprobar Expediente
-                </button>
+                {canRechazar && (
+                  <button
+                    onClick={() => {
+                      handleAbrirRechazo(inspectModal);
+                    }}
+                    className="btn-sm"
+                    style={{ background: '#fef2f2', color: '#dc2626', borderColor: '#fecaca', fontWeight: 600 }}
+                  >
+                    <X size={14} /> Rechazar Solicitud
+                  </button>
+                )}
+                {canAprobar && (
+                  <button
+                    onClick={() => {
+                      handleAprobar(inspectModal);
+                    }}
+                    className="btn-primary"
+                    style={{ background: '#059669', borderColor: '#059669' }}
+                  >
+                    <Check size={16} /> Aprobar Expediente
+                  </button>
+                )}
               </div>
             </div>
           </div>
