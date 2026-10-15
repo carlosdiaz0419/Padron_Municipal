@@ -197,6 +197,20 @@
   text-transform: capitalize;
 }
 
+.sidebar__user-dependencia {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 135px;
+  margin-top: 1px;
+}
+
 .btn-logout {
   background: #f8fafc;
   color: #64748b;

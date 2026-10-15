@@ -19,7 +19,8 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  X
+  X,
+  Building2
 } from 'lucide-react';
 
 /**
@@ -244,6 +245,7 @@ function CapturistaBeneficiarios() {
                 <th>Folio</th>
                 <th>Solicitante</th>
                 <th>CURP</th>
+                <th>Dependencia Emisora</th>
                 <th>Discapacidad</th>
                 <th>Ayuda Técnica</th>
                 <th>Asentamiento</th>
@@ -254,7 +256,7 @@ function CapturistaBeneficiarios() {
             <tbody>
               {beneficiarios.length === 0 ? (
                 <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', padding: '2.5rem', color: '#94a3b8' }}>
+                  <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem', color: '#94a3b8' }}>
                     No se encontraron beneficiarios que coincidan con la búsqueda.
                   </td>
                 </tr>
@@ -271,6 +273,11 @@ function CapturistaBeneficiarios() {
                       </div>
                     </td>
                     <td style={{ fontFamily: 'monospace', color: '#475569' }}>{b.curp}</td>
+                    <td>
+                      <span style={{ fontSize: '0.8rem', color: '#0369a1', background: '#f0f9ff', border: '1px solid #bae6fd', padding: '2px 8px', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                        <Building2 size={11} /> {b.dependencia || b.dependencia_emisora || 'DIF - Asistencia Social'}
+                      </span>
+                    </td>
                     <td>
                       <span className="badge badge--inactivo">{b.tipo_discapacidad || 'N/A'}</span>
                     </td>
@@ -377,7 +384,7 @@ function CapturistaBeneficiarios() {
                   Nueva Solicitud de Ayuda
                 </h3>
                 <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
-                  Expediente: <strong>{modalBeneficiario.nombre_completo || modalBeneficiario.nombre}</strong> ({modalBeneficiario.curp})
+                  Expediente: <strong>{modalBeneficiario.nombre_completo || modalBeneficiario.nombre}</strong> ({modalBeneficiario.curp}) • Dependencia: <span style={{ color: '#0369a1', fontWeight: 600 }}>{modalBeneficiario.dependencia || modalBeneficiario.dependencia_emisora || 'DIF Municipal'}</span>
                 </p>
               </div>
               <button 

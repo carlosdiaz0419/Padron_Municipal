@@ -43,8 +43,11 @@ function ConsultorLayout() {
               {user?.nombre ? user.nombre.charAt(0).toUpperCase() : 'C'}
             </div>
             <div className="sidebar__user-details">
-              <span className="sidebar__user-name">{user?.nombre || 'Consultor'}</span>
+              <span className="sidebar__user-name" title={user?.nombre}>{user?.nombre || 'Consultor'}</span>
               <span className="sidebar__user-role">Consultor</span>
+              <span className="sidebar__user-dependencia" title={user?.dependencia || 'Secretaría de Planeación Municipal'}>
+                <Building2 size={10} style={{ flexShrink: 0 }} /> {user?.dependencia || 'Secretaría de Planeación Municipal'}
+              </span>
             </div>
           </div>
           <button onClick={() => { logout(); navigate('/login'); }} className="btn-logout" title="Cerrar Sesión">

@@ -66,8 +66,11 @@ function AdminLayout() {
               {user?.nombre ? user.nombre.charAt(0).toUpperCase() : 'A'}
             </div>
             <div className="sidebar__user-details">
-              <span className="sidebar__user-name">{user?.nombre || 'Administrador'}</span>
+              <span className="sidebar__user-name" title={user?.nombre}>{user?.nombre || 'Administrador'}</span>
               <span className="sidebar__user-role">Admin</span>
+              <span className="sidebar__user-dependencia" title={user?.dependencia || 'Dirección General DIF'}>
+                <Building2 size={10} style={{ flexShrink: 0 }} /> {user?.dependencia || 'Dirección General DIF'}
+              </span>
             </div>
           </div>
           <button onClick={handleLogout} className="btn-logout" title="Cerrar Sesión">

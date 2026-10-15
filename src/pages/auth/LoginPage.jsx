@@ -16,7 +16,8 @@ import {
   Loader2,
   Sparkles,
   KeyRound,
-  Check
+  Check,
+  Building2
 } from 'lucide-react';
 
 import fondoImg from '../../assets/fondo.jpeg';
@@ -45,10 +46,10 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const rolesDemo = [
-    { label: 'Admin', user: 'admin', desc: 'Control Total', icon: Shield, theme: 'admin' },
-    { label: 'Supervisor', user: 'supervisor', desc: 'Validación', icon: CheckCircle2, theme: 'supervisor' },
-    { label: 'Capturista', user: 'capturista', desc: 'Registro', icon: ClipboardEdit, theme: 'capturista' },
-    { label: 'Consultor', user: 'consultor', desc: 'Solo Lectura', icon: Search, theme: 'consultor' },
+    { label: 'Admin', user: 'admin', desc: 'Control Total', dependencia: 'Dirección General DIF', icon: Shield, theme: 'admin' },
+    { label: 'Supervisor', user: 'supervisor', desc: 'Validación', dependencia: 'Dirección de Asistencia Social', icon: CheckCircle2, theme: 'supervisor' },
+    { label: 'Capturista', user: 'capturista', desc: 'Registro', dependencia: 'Coordinación CEMTRI y Salud', icon: ClipboardEdit, theme: 'capturista' },
+    { label: 'Consultor', user: 'consultor', desc: 'Solo Lectura', dependencia: 'Secretaría de Planeación', icon: Search, theme: 'consultor' },
   ];
 
   const handleChange = (e) => {
@@ -219,6 +220,9 @@ function LoginPage() {
                       <div className="role-info-box">
                         <span className="role-name">{r.label}</span>
                         <span className="role-desc">{r.desc}</span>
+                        <span style={{ fontSize: '0.67rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '3px', marginTop: '2px', fontWeight: 500 }}>
+                          <Building2 size={10} style={{ flexShrink: 0 }} /> {r.dependencia}
+                        </span>
                       </div>
                       {isSelected && (
                         <div className="role-check-indicator">

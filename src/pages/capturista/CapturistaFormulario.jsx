@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import {
   getBeneficiarioById,
   crearBeneficiario,
@@ -20,11 +21,15 @@ import {
   HeartPulse,
   Scale,
   Utensils,
-  ShieldCheck
+  ShieldCheck,
+  Building2
 } from 'lucide-react';
 import './CapturistaFormulario.css';
 
 const FORM_INITIAL = {
+  // 0. Dependencia y Unidad Responsable
+  dependencia_emisora: 'Dirección de Asistencia Social',
+
   // 1. Solicitud y Datos Personales
   fecha_solicitud: new Date().toISOString().split('T')[0],
   nombre: '',
@@ -87,6 +92,7 @@ const FORM_INITIAL = {
 function CapturistaFormulario() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const esEdicion = Boolean(id);
 
   const [form, setForm] = useState(FORM_INITIAL);
@@ -95,10 +101,25 @@ function CapturistaFormulario() {
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
+    if (!esEdicion && user?.dependencia) {
+      setForm((prev) => ({
+        ...prev,
+        dependencia_emisora: prev.dependencia_emisora || user.dependencia,
+      }));
+    }
+  }, [user, esEdicion]);
+
+  useEffect(() => {
     if (!esEdicion) return;
     setLoading(true);
     getBeneficiarioById(id)
-      .then((data) => setForm((prev) => ({ ...prev, ...data })))
+      .then((data) => {
+        setForm((prev) => ({
+          ...prev,
+          ...data,
+          dependencia_emisora: data.dependencia_emisora || data.dependencia || prev.dependencia_emisora,
+        }));
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, [id, esEdicion]);
@@ -147,11 +168,15 @@ function CapturistaFormulario() {
     setError('');
     setSuccess('');
     try {
+      const payload = {
+        ...form,
+        dependencia: form.dependencia_emisora || 'Dirección de Asistencia Social',
+      };
       if (esEdicion) {
-        await actualizarBeneficiario(id, form);
+        await actualizarBeneficiario(id, payload);
         setSuccess('Expediente del beneficiario DIF actualizado con éxito.');
       } else {
-        await crearBeneficiario(form);
+        await crearBeneficiario(payload);
         setSuccess('Beneficiario registrado exitosamente en el Padrón de Ayudas Técnicas DIF.');
         setForm(FORM_INITIAL);
       }
@@ -187,6 +212,66 @@ function CapturistaFormulario() {
       )}
 
       <form onSubmit={handleSubmit} className="beneficiario-form-card">
+        {/* ── 0. DEPENDENCIA Y UNIDAD RESPONSABLE ────────────────── */}
+        <div className="form-card-section" style={{ borderLeft: '4px solid #0284c7', background: '#f8fafc', marginBottom: '1.25rem' }}>
+          <div className="form-section-header">
+            <div className="form-section-icon" style={{ background: '#e0f2fe', color: '#0284c7' }}>
+              <Building2 size={18} />
+            </div>
+            <div>
+              <h2 className="form-section-title" style={{ margin: 0 }}>Dependencia y Unidad Responsable del Expediente</h2>
+              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                Organismo municipal y funcionario emisor a cargo de la captura de este formulario
+              </span>
+            </div>
+          </div>
+
+          <div className="form-grid form-grid-2" style={{ marginTop: '1rem' }}>
+            <div className="form-field">
+              <label className="form-label">
+                Dependencia / Organismo Emisor <span className="required-mark">*</span>
+              </label>
+              <select
+                className="form-select"
+                name="dependencia_emisora"
+                value={form.dependencia_emisora || 'Dirección de Asistencia Social'}
+                onChange={handleChange}
+                required
+              >
+                <option value="Dirección General DIF">DIF Municipal — Dirección General</option>
+                <option value="Dirección de Asistencia Social">DIF Municipal — Dirección de Asistencia Social</option>
+                <option value="Coordinación de Salud y CEMTRI">DIF Municipal — Coordinación de Salud y CEMTRI</option>
+                <option value="Casa del Abuelo y Adultos Mayores">DIF Municipal — Casa del Abuelo (Adultos Mayores)</option>
+                <option value="Procuraduría de Protección DIF">DIF Municipal — Procuraduría de Protección (NNA)</option>
+                <option value="Secretaría de Desarrollo Social">Secretaría de Desarrollo Social Municipal</option>
+                <option value="Instituto Municipal de las Mujeres">Instituto Municipal de las Mujeres</option>
+                <option value="Secretaría de Planeación Municipal">Secretaría de Planeación Municipal</option>
+              </select>
+            </div>
+
+            <div className="form-field">
+              <label className="form-label">Funcionario / Capturista en Turno</label>
+              <div style={{
+                padding: '0.55rem 0.85rem',
+                background: '#ffffff',
+                border: '1px solid #cbd5e1',
+                borderRadius: '8px',
+                fontSize: '0.88rem',
+                color: '#1e293b',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                minHeight: '40px'
+              }}>
+                <User size={15} style={{ color: '#0284c7' }} />
+                <span>
+                  <strong>{user?.nombre || 'Capturista'}</strong> ({user?.rol ? user.rol.toUpperCase() : 'CAPTURISTA'}) • <span style={{ color: '#64748b' }}>{user?.dependencia || 'DIF Municipal'}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* ── 1. DATOS DEL SOLICITANTE ───────────────────────────── */}
         <div className="form-card-section">
           <div className="form-section-header">

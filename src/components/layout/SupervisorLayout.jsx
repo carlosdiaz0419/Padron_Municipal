@@ -48,8 +48,11 @@ function SupervisorLayout() {
               {user?.nombre ? user.nombre.charAt(0).toUpperCase() : 'S'}
             </div>
             <div className="sidebar__user-details">
-              <span className="sidebar__user-name">{user?.nombre || 'Supervisor'}</span>
+              <span className="sidebar__user-name" title={user?.nombre}>{user?.nombre || 'Supervisor'}</span>
               <span className="sidebar__user-role">Supervisor</span>
+              <span className="sidebar__user-dependencia" title={user?.dependencia || 'Dirección de Asistencia Social'}>
+                <Building2 size={10} style={{ flexShrink: 0 }} /> {user?.dependencia || 'Dirección de Asistencia Social'}
+              </span>
             </div>
           </div>
           <button onClick={() => { logout(); navigate('/login'); }} className="btn-logout" title="Cerrar Sesión">
