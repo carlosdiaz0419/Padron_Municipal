@@ -21,8 +21,12 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  Building2
+  Building2,
+  Download,
+  FileSpreadsheet,
+  Printer
 } from 'lucide-react';
+import { exportToExcel, exportToPDF, exportFichaBeneficiarioPDF } from '../../utils/exportUtils';
 
 /**
  * CapturistaBeneficiarios — Listado de beneficiarios conectado con rutas completas:
@@ -109,6 +113,64 @@ function CapturistaBeneficiarios() {
     loadCatalogos();
   }, []);
 
+  const columnasExportar = [
+    { header: 'Folio', render: (b) => b.folio || `DIF-2027-${String(b.id).padStart(3, '0')}` },
+    { header: 'Nombre Completo', render: (b) => b.nombre_completo || `${b.nombre || ''} ${b.apellido_paterno || ''} ${b.apellido_materno || ''}`.trim() },
+    { header: 'CURP', key: 'curp' },
+    { header: 'Edad', key: 'edad' },
+    { header: 'Sexo', key: 'sexo' },
+    { header: 'Dependencia Emisora', render: (b) => b.dependencia || b.dependencia_emisora || 'DIF - Asistencia Social' },
+    { header: 'Discapacidad', key: 'tipo_discapacidad' },
+    { header: 'Ayuda Solicitada', key: 'tipo_ayuda_solicitada' },
+    { header: 'Asentamiento', render: (b) => `${b.tipo_asentamiento || 'Colonia'} ${b.nombre_asentamiento || ''}`.trim() },
+    { header: 'Estatus', render: (b) => (b.estatus || 'activo').toUpperCase() }
+  ];
+
+  const handleExportExcel = async () => {
+    try {
+      let dataToExport = beneficiarios;
+      if (totalCount > beneficiarios.length) {
+        const res = await getBeneficiarios({ limit: 1000, q: searchTerm.trim() || undefined });
+        dataToExport = res?.beneficiarios || dataToExport;
+      }
+      exportToExcel({
+        filename: 'Padron_Beneficiarios_DIF_2027.xls',
+        title: 'Padrón Oficial de Beneficiarios DIF Tuxtla Gutiérrez',
+        subtitle: 'Sistema Integral de Gestión de Asistencia Social',
+        columns: columnasExportar,
+        data: dataToExport
+      });
+      setActionSuccess(`Padrón exportado a Excel (.xls) exitosamente (${dataToExport.length} registros).`);
+      setTimeout(() => setActionSuccess(''), 4000);
+    } catch (err) {
+      alert('Error al exportar a Excel: ' + err.message);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    try {
+      let dataToExport = beneficiarios;
+      if (totalCount > beneficiarios.length) {
+        const res = await getBeneficiarios({ limit: 1000, q: searchTerm.trim() || undefined });
+        dataToExport = res?.beneficiarios || dataToExport;
+      }
+      exportToPDF({
+        title: 'Padrón Oficial de Beneficiarios DIF Tuxtla Gutiérrez',
+        subtitle: 'Relación Nominal de Expedientes de Asistencia Social',
+        columns: columnasExportar,
+        data: dataToExport,
+        orientation: 'landscape',
+        summaryItems: [
+          { label: 'Total Expedientes', value: dataToExport.length },
+          { label: 'Municipio', value: 'Tuxtla Gutiérrez' },
+          { label: 'Ciclo Fiscal', value: '2026-2027' }
+        ]
+      });
+    } catch (err) {
+      alert('Error al exportar a PDF: ' + err.message);
+    }
+  };
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setPage(1);
@@ -192,14 +254,52 @@ function CapturistaBeneficiarios() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 className="page-title">Padrón de Beneficiarios</h1>
-          <p className="page-subtitle">Listado oficial de ciudadanos registrados (GET /api/beneficiarios).</p>
+          <p className="page-subtitle">Listado oficial de ciudadanos registrados en formatos exportables.</p>
         </div>
-        {canCrear && (
-          <Link to="/capturista/beneficiarios/nuevo" className="btn-primary">
-            <Plus size={16} />
-            <span>Nuevo Beneficiario</span>
-          </Link>
-        )}
+        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button
+            onClick={handleExportExcel}
+            className="btn-secondary"
+            title="Exportar padrón a Microsoft Excel (.xls)"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.45rem', 
+              background: '#f0fdf4', 
+              color: '#166534', 
+              borderColor: '#bbf7d0', 
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            <FileSpreadsheet size={16} color="#16a34a" />
+            <span>Excel (.xls)</span>
+          </button>
+          <button
+            onClick={handleExportPDF}
+            className="btn-secondary"
+            title="Exportar padrón en documento PDF oficial"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.45rem', 
+              background: '#eff6ff', 
+              color: '#1d4ed8', 
+              borderColor: '#bfdbfe', 
+              fontWeight: 600,
+              cursor: 'pointer'
+            }}
+          >
+            <Download size={16} color="#2563eb" />
+            <span>Padrón PDF</span>
+          </button>
+          {canCrear && (
+            <Link to="/capturista/beneficiarios/nuevo" className="btn-primary">
+              <Plus size={16} />
+              <span>Nuevo Beneficiario</span>
+            </Link>
+          )}
+        </div>
       </div>
 
       {actionSuccess && (
@@ -297,6 +397,17 @@ function CapturistaBeneficiarios() {
                     <td>{getStatusBadge(b.estatus)}</td>
                     <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                       <div style={{ display: 'inline-flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
+                        {/* Botón Imprimir Ficha Oficial PDF (Anexo 5) */}
+                        <button 
+                          onClick={() => exportFichaBeneficiarioPDF(b)} 
+                          className="btn-sm" 
+                          title="Imprimir Cédula Oficial de Beneficiario (Anexo 5) en PDF"
+                          style={{ background: '#f0fdf4', color: '#15803d', borderColor: '#bbf7d0', fontWeight: 500 }}
+                        >
+                          <Printer size={13} />
+                          <span>Ficha PDF</span>
+                        </button>
+
                         {/* Botón Nueva Solicitud (POST /api/beneficiarios/:id/solicitudes) */}
                         {canSolicitudes && (
                           <button 

@@ -8,9 +8,11 @@ import {
   X, 
   FileCheck2, 
   Percent,
-  ShieldCheck
+  ShieldCheck,
+  FileSpreadsheet
 } from 'lucide-react';
 import { getBeneficiarios } from '../../services/api';
+import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 
 function SupervisorReportes() {
   const [downloading, setDownloading] = useState(false);
@@ -22,41 +24,73 @@ function SupervisorReportes() {
     setTimeout(() => setNotification(null), 4000);
   };
 
-  const exportarResumenCSV = async () => {
+  const getMetricasSupervision = async () => {
+    const res = await getBeneficiarios({ limit: 500 });
+    const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
+
+    const total = lista.length;
+    const activos = lista.filter((b) => b.estatus === 'activo').length;
+    const pendientes = lista.filter((b) => b.estatus === 'pendiente').length;
+    const rechazados = lista.filter((b) => b.estatus === 'rechazado').length;
+    const otros = total - activos - pendientes - rechazados;
+    const pct = total > 0 ? Math.round((activos / total) * 100) : 0;
+
+    const dataFilas = [
+      { indicador: 'Total Expedientes Recibidos', valor: total, descripcion: 'Total de solicitudes registradas en el periodo', meta: '100%' },
+      { indicador: 'Expedientes Validados y Activos', valor: activos, descripcion: 'Expedientes que cumplen todos los requisitos normativos y dictamen favorable', meta: '90%' },
+      { indicador: 'Expedientes Pendientes de Evaluación', valor: pendientes, descripcion: 'En proceso de revisión de documentación y comprobantes', meta: 'Máx. 10%' },
+      { indicador: 'Expedientes Rechazados / Observados', valor: rechazados + otros, descripcion: 'Requieren subsanar inconsistencias o fueron declinados', meta: '0%' },
+      { indicador: 'Porcentaje Global de Avance', valor: `${pct}%`, descripcion: 'Meta institucional de dictaminación DIF Tuxtla Gutiérrez 2027', meta: '100%' },
+    ];
+
+    const columns = [
+      { header: 'Indicador de Supervisión', key: 'indicador' },
+      { header: 'Resultado / Conteo', key: 'valor' },
+      { header: 'Descripción Operativa', key: 'descripcion' },
+      { header: 'Meta Normativa', key: 'meta' }
+    ];
+
+    return { total, activos, pendientes, rechazados, pct, dataFilas, columns };
+  };
+
+  const handleExportSupervisorExcel = async () => {
     try {
       setDownloading(true);
-      const res = await getBeneficiarios({ limit: 500 });
-      const lista = res?.beneficiarios || [];
-
-      const total = lista.length;
-      const activos = lista.filter((b) => b.estatus === 'activo').length;
-      const pendientes = lista.filter((b) => b.estatus === 'pendiente').length;
-      const otros = total - activos - pendientes;
-      const pct = total > 0 ? Math.round((activos / total) * 100) : 0;
-
-      const csvHeader = 'Indicador,Valor,Descripcion\n';
-      const rows = [
-        `"Total Expedientes Recibidos",${total},"Total de solicitudes registradas en el periodo"`,
-        `"Expedientes Validados y Activos",${activos},"Expedientes que cumplen todos los requisitos normativos"`,
-        `"Expedientes Pendientes de Evaluacion",${pendientes},"En espera de revision de comprobantes y dictamen"`,
-        `"Expedientes Observados / Rechazados",${otros},"Requieren correccion o no cumplen criterios"`,
-        `"Porcentaje Global de Avance","${pct}%","Meta institucional DIF Tuxtla Gutierrez 2027"`,
-      ];
-
-      const csvContent = '\uFEFF' + csvHeader + rows.join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'Reporte_Supervision_Avance_DIF_2027.csv');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      showToast('Resumen de supervisión descargado exitosamente.');
+      const { dataFilas, columns } = await getMetricasSupervision();
+      exportToExcel({
+        filename: 'Reporte_Supervision_Avance_DIF_2027.xls',
+        title: 'Informe de Supervisión y Control Operativo DIF 2027',
+        subtitle: 'Sistema DIF Tuxtla Gutiérrez — Dirección de Asistencia Social',
+        columns,
+        data: dataFilas
+      });
+      showToast('Reporte de supervisión en Excel descargado exitosamente.');
     } catch (err) {
-      alert('Error al exportar resumen: ' + err.message);
+      alert('Error al generar Excel: ' + err.message);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleExportSupervisorPDF = async () => {
+    try {
+      setDownloading(true);
+      const { total, activos, pct, dataFilas, columns } = await getMetricasSupervision();
+      exportToPDF({
+        title: 'Informe de Supervisión y Control Operativo DIF 2027',
+        subtitle: 'Dirección de Asistencia Social — Coordinación de Evaluación y Dictámenes DIF',
+        columns,
+        data: dataFilas,
+        orientation: 'landscape',
+        summaryItems: [
+          { label: 'Expedientes Recibidos', value: total },
+          { label: 'Aprobados y Activos', value: activos },
+          { label: 'Avance Global', value: `${pct}%` }
+        ]
+      });
+      showToast('Documento PDF oficial de supervisión generado exitosamente.');
+    } catch (err) {
+      alert('Error al generar PDF: ' + err.message);
     } finally {
       setDownloading(false);
     }
@@ -67,17 +101,42 @@ function SupervisorReportes() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 className="page-title">Reportes de Supervisión</h1>
-          <p className="page-subtitle">Informes de avance de captura, validación y metas asignadas.</p>
+          <p className="page-subtitle">Informes de avance de captura, validación y metas asignadas en Excel y PDF.</p>
         </div>
-        <button 
-          onClick={exportarResumenCSV} 
-          disabled={downloading}
-          className="btn-primary"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: downloading ? 'not-allowed' : 'pointer' }}
-        >
-          <Download size={16} />
-          <span>{downloading ? 'Generando Reporte...' : 'Exportar Resumen'}</span>
-        </button>
+        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+          <button 
+            onClick={handleExportSupervisorExcel} 
+            disabled={downloading}
+            className="btn-secondary"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.45rem', 
+              cursor: downloading ? 'not-allowed' : 'pointer',
+              background: '#f0fdf4',
+              color: '#166534',
+              borderColor: '#bbf7d0',
+              fontWeight: 600
+            }}
+          >
+            <FileSpreadsheet size={16} color="#16a34a" />
+            <span>{downloading ? 'Descargando...' : 'Descargar Excel (.xls)'}</span>
+          </button>
+          <button 
+            onClick={handleExportSupervisorPDF} 
+            disabled={downloading}
+            className="btn-primary"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.45rem', 
+              cursor: downloading ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <Download size={16} />
+            <span>{downloading ? 'Generando...' : 'Descargar PDF Oficial'}</span>
+          </button>
+        </div>
       </div>
 
       {notification && (
@@ -184,7 +243,7 @@ function SupervisorReportes() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.65rem', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
@@ -197,13 +256,25 @@ function SupervisorReportes() {
                   type="button"
                   onClick={() => {
                     setShowModal(false);
-                    exportarResumenCSV();
+                    handleExportSupervisorExcel();
+                  }}
+                  className="btn-sm"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.1rem', background: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  <FileSpreadsheet size={15} color="#16a34a" />
+                  <span>Descargar Excel (.xls)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModal(false);
+                    handleExportSupervisorPDF();
                   }}
                   className="btn-primary"
                   style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', cursor: 'pointer' }}
                 >
                   <Download size={15} />
-                  <span>Descargar Resumen</span>
+                  <span>Descargar PDF Oficial</span>
                 </button>
               </div>
             </div>

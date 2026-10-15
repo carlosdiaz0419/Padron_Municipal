@@ -16,10 +16,12 @@ import {
   FileText,
   Calendar,
   Filter,
-  Building2
+  Building2,
+  Printer
 } from 'lucide-react';
 import { getBeneficiarios, actualizarBeneficiario } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { exportFichaBeneficiarioPDF } from '../../utils/exportUtils';
 
 function SupervisorValidacion() {
   const { hasPermission } = useAuth();
@@ -668,13 +670,34 @@ function SupervisorValidacion() {
               borderTop: '1px solid #e2e8f0',
               background: '#f8fafc'
             }}>
-              <button
-                onClick={() => setInspectModal(null)}
-                className="btn-sm"
-                style={{ background: '#ffffff', color: '#475569', borderColor: '#cbd5e1' }}
-              >
-                Cerrar
-              </button>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <button
+                  onClick={() => setInspectModal(null)}
+                  className="btn-sm"
+                  style={{ background: '#ffffff', color: '#475569', borderColor: '#cbd5e1' }}
+                >
+                  Cerrar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => exportFichaBeneficiarioPDF(inspectModal)}
+                  className="btn-sm"
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '0.4rem', 
+                    background: '#eff6ff', 
+                    color: '#1d4ed8', 
+                    borderColor: '#bfdbfe', 
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                  title="Generar Ficha Oficial (Anexo 5) en PDF"
+                >
+                  <Printer size={14} color="#2563eb" />
+                  <span>Ficha Oficial (PDF)</span>
+                </button>
+              </div>
 
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 {canRechazar && (

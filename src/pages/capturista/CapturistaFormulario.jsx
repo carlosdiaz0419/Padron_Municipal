@@ -399,13 +399,15 @@ function CapturistaFormulario() {
                 name="estado_civil"
                 value={form.estado_civil}
                 onChange={handleChange}
+                required
               >
                 <option value="">Seleccione estado civil</option>
-                <option value="Soltero (a)">Soltero (a)</option>
-                <option value="Casado (a)">Casado (a)</option>
-                <option value="Viudo (a)">Viudo (a)</option>
-                <option value="Unión Libre">Unión Libre</option>
-                <option value="Divorciado (a)">Divorciado (a)</option>
+                <option value="Soltero(a)">Soltero(a)</option>
+                <option value="Casado(a)">Casado(a)</option>
+                <option value="Viudo(a)">Viudo(a)</option>
+                <option value="Divorciado(a)">Divorciado(a)</option>
+                <option value="Unión libre">Unión libre</option>
+                <option value="Separado(a)">Separado(a)</option>
               </select>
             </div>
           </div>

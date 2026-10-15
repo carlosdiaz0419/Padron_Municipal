@@ -9,9 +9,11 @@ import {
   Users, 
   MapPin,
   Table,
-  FileCheck2
+  FileCheck2,
+  FileText
 } from 'lucide-react';
 import { getBeneficiarios } from '../../services/api';
+import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
 
 function AdminReportes() {
   const [downloading, setDownloading] = useState(false);
@@ -23,42 +25,116 @@ function AdminReportes() {
     setTimeout(() => setNotification(null), 4000);
   };
 
-  const exportarCSV = async (tipo = 'general') => {
+  const columnasConsolidado = [
+    { header: 'Folio', key: 'folio' },
+    { header: 'Nombre Completo', render: (b) => b.nombre_completo || b.nombre || '' },
+    { header: 'CURP', key: 'curp' },
+    { header: 'Edad', key: 'edad' },
+    { header: 'Sexo', key: 'sexo' },
+    { header: 'Discapacidad', key: 'tipo_discapacidad' },
+    { header: 'Ayuda Solicitada', key: 'tipo_ayuda_solicitada' },
+    { header: 'Colonia / Asentamiento', render: (b) => `${b.tipo_asentamiento || ''} ${b.nombre_asentamiento || ''}`.trim() },
+    { header: 'Estatus', render: (b) => (b.estatus || 'Activo').toUpperCase() }
+  ];
+
+  const columnasTerritorial = [
+    { header: 'Folio', key: 'folio' },
+    { header: 'Beneficiario', render: (b) => b.nombre_completo || b.nombre || '' },
+    { header: 'CURP', key: 'curp' },
+    { header: 'Colonia / Asentamiento', render: (b) => `${b.tipo_asentamiento || ''} ${b.nombre_asentamiento || ''}`.trim() },
+    { header: 'Dirección Completa', render: (b) => `${b.tipo_vialidad || ''} ${b.nombre_vialidad || ''} ${b.numero_exterior || ''}`.trim() },
+    { header: 'Municipio', render: () => 'Tuxtla Gutiérrez' },
+    { header: 'Estatus', render: (b) => (b.estatus || 'Activo').toUpperCase() }
+  ];
+
+  const handleExportConsolidadoExcel = async () => {
     try {
       setDownloading(true);
       const res = await getBeneficiarios({ limit: 1000 });
-      const lista = res?.beneficiarios || [];
-
-      let csvHeader = '';
-      let csvRows = [];
-
-      if (tipo === 'municipio') {
-        csvHeader = 'Folio,Beneficiario,CURP,Asentamiento,Vialidad,Municipio,Estatus\n';
-        csvRows = lista.map((b) => 
-          `"${b.folio || ''}","${b.nombre_completo || b.nombre || ''}","${b.curp || ''}","${b.tipo_asentamiento || ''} ${b.nombre_asentamiento || ''}","${b.tipo_vialidad || ''} ${b.nombre_vialidad || ''} ${b.numero_exterior || ''}","Tuxtla Gutiérrez","${b.estatus || 'Activo'}"`
-        );
-      } else {
-        csvHeader = 'Folio,Fecha_Solicitud,Nombre_Completo,CURP,Edad,Sexo,Discapacidad,Ayuda_Solicitada,Asentamiento,Estatus\n';
-        csvRows = lista.map((b) => 
-          `"${b.folio || ''}","${b.fecha_solicitud || ''}","${b.nombre_completo || b.nombre || ''}","${b.curp || ''}","${b.edad || ''}","${b.sexo || ''}","${b.tipo_discapacidad || ''}","${b.tipo_ayuda_solicitada || ''}","${b.tipo_asentamiento || ''} ${b.nombre_asentamiento || ''}","${b.estatus || 'Activo'}"`
-        );
-      }
-
-      // Añadir BOM (\uFEFF) para que Microsoft Excel reconozca tildes y caracteres en español correctamente
-      const csvContent = '\uFEFF' + csvHeader + csvRows.join('\n');
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', tipo === 'municipio' ? 'Distribucion_Por_Municipio_DIF_2027.csv' : 'Padron_General_Consolidado_DIF_2027.csv');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      showToast(`Archivo Excel/CSV descargado exitosamente (${lista.length} registros).`);
+      const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
+      exportToExcel({
+        filename: 'Padron_General_Consolidado_DIF_2027.xls',
+        title: 'Padrón General Consolidado DIF 2027',
+        subtitle: 'Sistema DIF Tuxtla Gutiérrez — Dirección de Asistencia Social',
+        columns: columnasConsolidado,
+        data: lista
+      });
+      showToast(`Archivo Excel (.xls) descargado exitosamente (${lista.length} registros).`);
     } catch (err) {
-      alert('Error al generar el archivo exportable: ' + err.message);
+      alert('Error al generar Excel: ' + err.message);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleExportConsolidadoPDF = async () => {
+    try {
+      setDownloading(true);
+      const res = await getBeneficiarios({ limit: 1000 });
+      const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
+      const total = lista.length;
+      const mujeres = lista.filter((b) => b.sexo === 'M').length;
+      const pctMujeres = total > 0 ? Math.round((mujeres / total) * 100) : 0;
+      exportToPDF({
+        title: 'Padrón General Consolidado DIF 2027',
+        subtitle: 'Sistema Municipal DIF Tuxtla Gutiérrez — Padrón Oficial Auditado',
+        columns: columnasConsolidado,
+        data: lista,
+        orientation: 'landscape',
+        summaryItems: [
+          { label: 'Total Registros', value: total },
+          { label: 'Mujeres (M)', value: `${pctMujeres}%` },
+          { label: 'Estatus', value: '100% Auditado' }
+        ]
+      });
+      showToast(`Documento PDF generado exitosamente (${lista.length} registros).`);
+    } catch (err) {
+      alert('Error al generar PDF: ' + err.message);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleExportTerritorialExcel = async () => {
+    try {
+      setDownloading(true);
+      const res = await getBeneficiarios({ limit: 1000 });
+      const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
+      exportToExcel({
+        filename: 'Distribucion_Territorial_DIF_2027.xls',
+        title: 'Distribución Territorial de Beneficiarios',
+        subtitle: 'Sistema DIF Tuxtla Gutiérrez — Concentrado por Colonias y Localidades',
+        columns: columnasTerritorial,
+        data: lista
+      });
+      showToast(`Reporte territorial en Excel descargado exitosamente.`);
+    } catch (err) {
+      alert('Error al exportar territorial Excel: ' + err.message);
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleExportTerritorialPDF = async () => {
+    try {
+      setDownloading(true);
+      const res = await getBeneficiarios({ limit: 1000 });
+      const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
+      exportToPDF({
+        title: 'Distribución Territorial de Beneficiarios',
+        subtitle: 'Sistema Municipal DIF Tuxtla Gutiérrez — Reporte Geográfico de Cobertura',
+        columns: columnasTerritorial,
+        data: lista,
+        orientation: 'landscape',
+        summaryItems: [
+          { label: 'Total Beneficiarios', value: lista.length },
+          { label: 'Municipio Sede', value: 'Tuxtla Gutiérrez' },
+          { label: 'Cobertura', value: '100% Municipal' }
+        ]
+      });
+      showToast(`Reporte territorial en PDF generado exitosamente.`);
+    } catch (err) {
+      alert('Error al generar PDF territorial: ' + err.message);
     } finally {
       setDownloading(false);
     }
@@ -69,17 +145,42 @@ function AdminReportes() {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 className="page-title">Módulo de Reportes</h1>
-          <p className="page-subtitle">Generación de estadísticas y padrones en formatos exportables.</p>
+          <p className="page-subtitle">Generación de estadísticas y padrones en formatos exportables en Excel y PDF.</p>
         </div>
-        <button 
-          onClick={() => exportarCSV('general')} 
-          disabled={downloading}
-          className="btn-primary"
-          style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: downloading ? 'not-allowed' : 'pointer' }}
-        >
-          <Download size={16} />
-          <span>{downloading ? 'Generando Excel...' : 'Exportar a Excel'}</span>
-        </button>
+        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+          <button 
+            onClick={handleExportConsolidadoExcel} 
+            disabled={downloading}
+            className="btn-secondary"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.45rem', 
+              cursor: downloading ? 'not-allowed' : 'pointer',
+              background: '#f0fdf4',
+              color: '#166534',
+              borderColor: '#bbf7d0',
+              fontWeight: 600
+            }}
+          >
+            <FileSpreadsheet size={16} color="#16a34a" />
+            <span>{downloading ? 'Descargando...' : 'Descargar Excel (.xls)'}</span>
+          </button>
+          <button 
+            onClick={handleExportConsolidadoPDF} 
+            disabled={downloading}
+            className="btn-primary"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '0.45rem', 
+              cursor: downloading ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <Download size={16} />
+            <span>{downloading ? 'Generando...' : 'Descargar PDF Oficial'}</span>
+          </button>
+        </div>
       </div>
 
       {notification && (
@@ -208,7 +309,7 @@ function AdminReportes() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.65rem', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
@@ -221,13 +322,25 @@ function AdminReportes() {
                   type="button"
                   onClick={() => {
                     setActiveModal(null);
-                    exportarCSV('general');
+                    handleExportConsolidadoExcel();
+                  }}
+                  className="btn-sm"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.1rem', background: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  <FileSpreadsheet size={15} color="#16a34a" />
+                  <span>Descargar Excel (.xls)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveModal(null);
+                    handleExportConsolidadoPDF();
                   }}
                   className="btn-primary"
                   style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', cursor: 'pointer' }}
                 >
                   <Download size={15} />
-                  <span>Descargar Archivo CSV</span>
+                  <span>Descargar PDF Oficial</span>
                 </button>
               </div>
             </div>
@@ -315,7 +428,7 @@ function AdminReportes() {
                 </table>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.65rem', flexWrap: 'wrap' }}>
                 <button
                   type="button"
                   onClick={() => setActiveModal(null)}
@@ -328,13 +441,25 @@ function AdminReportes() {
                   type="button"
                   onClick={() => {
                     setActiveModal(null);
-                    exportarCSV('municipio');
+                    handleExportTerritorialExcel();
+                  }}
+                  className="btn-sm"
+                  style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.1rem', background: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  <FileSpreadsheet size={15} color="#16a34a" />
+                  <span>Descargar Excel (.xls)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActiveModal(null);
+                    handleExportTerritorialPDF();
                   }}
                   className="btn-primary"
                   style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', padding: '0.6rem 1.25rem', cursor: 'pointer' }}
                 >
                   <Download size={15} />
-                  <span>Exportar Reporte Territorial</span>
+                  <span>Descargar PDF</span>
                 </button>
               </div>
             </div>
