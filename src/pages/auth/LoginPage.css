@@ -1,10 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════
    LOGIN — IDENTIDAD OFICIAL TUXTLA GUTIÉRREZ 2024-2027
-   - Banner oficial transparente en la esquina superior izquierda (Header)
+   - Banner institucional transparente en esquina superior izquierda
    - Fondo institucional oficial de bordados chiapanecos (fondo.jpeg)
    - Ilustración transparente centrada a la izquierda (Ilustracion.png)
-   - Login centrado a la derecha (tuxtla-auth-card)
-   - Diseño completamente responsivo (móviles, tablets y computadoras)
+   - Tarjeta de acceso premium con elevación, micro-interacciones y confianza institucional
+   - Diseño responsivo (móviles, tablets y computadoras)
 ═══════════════════════════════════════════════════════════════ */
 
 .tuxtla-login-wrapper {
@@ -25,6 +25,16 @@
   box-sizing: border-box;
 }
 
+/* Overlay sutil para realzar el contraste institucional y los textos */
+.tuxtla-login-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 75% 50%, rgba(11, 29, 58, 0.45) 0%, rgba(5, 15, 30, 0.72) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
 /* ── HEADER: Esquina Superior Izquierda ─────────────────────── */
 .tuxtla-header {
   position: absolute;
@@ -37,17 +47,18 @@
 }
 
 .tuxtla-header-logo {
-  height: 56px;
+  height: 76px;
   width: auto;
   max-width: 100%;
   object-fit: contain;
   display: block;
-  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.45));
-  transition: transform 0.25s ease;
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.75)) drop-shadow(0 0 1px rgba(0, 0, 0, 0.9));
+  transition: transform 0.25s ease, filter 0.25s ease;
 }
 
 .tuxtla-header-logo:hover {
   transform: translateY(-2px);
+  filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.85)) drop-shadow(0 0 2px rgba(251, 191, 36, 0.3));
 }
 
 /* ── CONTENEDOR PRINCIPAL: 2 Columnas Centradas ─────────────── */
@@ -86,7 +97,7 @@
   letter-spacing: -0.02em;
   margin: 0 0 0.5rem 0;
   text-transform: uppercase;
-  text-shadow: 0 3px 12px rgba(0, 0, 0, 0.65);
+  text-shadow: 0 3px 14px rgba(0, 0, 0, 0.7);
 }
 
 .login-subtitle-tag {
@@ -96,83 +107,114 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   margin: 0;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.7);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.75);
 }
 
-/* Contenedor e Ilustración Transparente */
 .login-illustration-container {
   width: 100%;
   max-width: 580px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  padding: 0;
   margin-top: 0.5rem;
 }
 
 .login-illustration-img {
   width: 100%;
   height: auto;
+  max-height: 480px;
   object-fit: contain;
   display: block;
-  background: transparent;
-  filter: drop-shadow(0 16px 36px rgba(0, 0, 0, 0.5));
+  filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.55));
   transition: transform 0.3s ease;
 }
 
 .login-illustration-img:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
 }
 
-/* ── COLUMNA DERECHA: Tarjeta de Acceso Centrada ────────────── */
+/* ── COLUMNA DERECHA: Tarjeta de Acceso Profesional ─────────── */
 .login-right-section {
-  flex: 0 0 430px;
+  flex: 0 0 440px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .tuxtla-auth-card {
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border-radius: 24px;
   box-shadow: 
-    0 25px 50px -12px rgba(0, 0, 0, 0.45),
-    0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.85);
+    0 25px 50px -12px rgba(2, 6, 23, 0.45),
+    0 8px 20px -4px rgba(2, 6, 23, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  border: 1px solid rgba(255, 255, 255, 0.7);
   width: 100%;
-  max-width: 430px;
-  padding: 2.5rem 2.25rem 2rem;
+  max-width: 440px;
+  padding: 2.5rem 2.25rem 2.1rem;
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-/* Franja superior azul marino institucional */
+.tuxtla-auth-card:hover {
+  box-shadow: 
+    0 30px 60px -12px rgba(2, 6, 23, 0.52),
+    0 12px 24px -4px rgba(2, 6, 23, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.95) inset;
+}
+
+/* Franja superior tricolor representativa */
 .card-top-accent {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 6px;
-  background: #08284d;
+  height: 5px;
+  background: linear-gradient(90deg, #0b1d3a 0%, #1d4ed8 50%, #f59e0b 100%);
 }
 
+/* Encabezado de la Tarjeta */
 .card-header-block {
   text-align: center;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.6rem;
+}
+
+.card-badge-security {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.32rem 0.85rem;
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 1px solid #bbf7d0;
+  color: #15803d;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  margin-bottom: 0.85rem;
+  box-shadow: 0 1px 3px rgba(22, 163, 74, 0.12);
+}
+
+.badge-shield-icon {
+  color: #16a34a;
 }
 
 .card-login-title {
   font-size: 1.85rem;
   font-weight: 800;
-  color: #0c2340;
-  letter-spacing: -0.02em;
-  margin: 0 0 0.25rem 0;
+  color: #0f172a;
+  letter-spacing: -0.025em;
+  margin: 0 0 0.3rem 0;
+  line-height: 1.2;
 }
 
 .card-login-subtitle {
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   color: #64748b;
   font-weight: 500;
   margin: 0;
@@ -182,20 +224,21 @@
 .tuxtla-auth-form {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.2rem;
 }
 
 .tuxtla-alert-error {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  padding: 0.75rem 0.95rem;
+  padding: 0.8rem 1rem;
   background: #fef2f2;
   border: 1px solid #fecaca;
-  color: #b91c1c;
-  border-radius: 10px;
+  color: #991b1b;
+  border-radius: 12px;
   font-size: 0.85rem;
   line-height: 1.35;
+  box-shadow: 0 2px 4px rgba(185, 28, 28, 0.05);
 }
 
 .alert-icon {
@@ -205,105 +248,150 @@
 .form-input-group {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
 
 .field-label {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: 600;
   color: #334155;
+  letter-spacing: 0.01em;
 }
 
 .input-field-wrapper {
   position: relative;
   display: flex;
   align-items: center;
+  border-radius: 12px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.input-field-wrapper:hover {
+  border-color: #cbd5e1;
+  background: #ffffff;
+}
+
+.input-field-wrapper:focus-within {
+  border-color: #2563eb;
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+.field-icon-box {
+  position: absolute;
+  left: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
 }
 
 .field-left-icon {
-  position: absolute;
-  left: 0.95rem;
   color: #94a3b8;
-  display: flex;
-  align-items: center;
-  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.input-field-wrapper:focus-within .field-left-icon {
+  color: #2563eb;
 }
 
 .input-field-wrapper input {
   width: 100%;
   height: 48px;
-  padding: 0 2.6rem 0 2.75rem;
-  background: #ffffff;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 12px;
+  padding: 0 2.6rem 0 2.85rem;
+  background: transparent;
+  border: none;
   font-size: 0.94rem;
   color: #0f172a;
   outline: none;
-  transition: all 0.15s ease-in-out;
   box-sizing: border-box;
+  font-family: inherit;
 }
 
 .input-field-wrapper input::placeholder {
   color: #94a3b8;
-  font-size: 0.9rem;
-}
-
-.input-field-wrapper input:focus {
-  border-color: #0066f5;
-  box-shadow: 0 0 0 3px rgba(0, 102, 245, 0.12);
+  font-size: 0.88rem;
 }
 
 .field-toggle-password {
   position: absolute;
   right: 0.75rem;
-  background: none;
+  background: transparent;
   border: none;
   color: #94a3b8;
   display: flex;
   align-items: center;
-  padding: 0.35rem;
+  justify-content: center;
+  padding: 0.4rem;
   cursor: pointer;
-  border-radius: 6px;
-  transition: color 0.15s ease;
+  border-radius: 8px;
+  transition: all 0.18s ease;
 }
 
 .field-toggle-password:hover {
-  color: #475569;
+  color: #1e293b;
+  background: #f1f5f9;
 }
 
 /* ── Botón Principal de Acceso ──────────────────────────────── */
 .btn-tuxtla-submit {
   width: 100%;
-  height: 48px;
-  margin-top: 0.25rem;
-  background: #0066f5;
+  height: 50px;
+  margin-top: 0.4rem;
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 55%, #2563eb 100%);
   color: #ffffff;
   border: none;
   border-radius: 12px;
-  font-size: 0.98rem;
+  font-size: 0.96rem;
   font-weight: 700;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.01em;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 0.6rem;
   cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0, 102, 245, 0.32);
-  transition: all 0.15s ease-in-out;
+  box-shadow: 0 8px 20px -3px rgba(29, 78, 216, 0.42), 0 3px 6px -2px rgba(29, 78, 216, 0.2);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-tuxtla-submit::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(255, 255, 255, 0.12), transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
 .btn-tuxtla-submit:hover:not(:disabled) {
-  background: #0056d6;
-  transform: translateY(-1px);
-  box-shadow: 0 8px 22px rgba(0, 102, 245, 0.4);
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 55%, #3b82f6 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -3px rgba(37, 99, 235, 0.5), 0 4px 8px -2px rgba(37, 99, 235, 0.25);
+}
+
+.btn-tuxtla-submit:hover:not(:disabled)::after {
+  opacity: 1;
+}
+
+.btn-tuxtla-submit:hover:not(:disabled) .btn-arrow-icon {
+  transform: translateX(3px);
+}
+
+.btn-arrow-icon {
+  transition: transform 0.2s ease;
 }
 
 .btn-tuxtla-submit:active:not(:disabled) {
   transform: translateY(0);
+  box-shadow: 0 6px 14px -2px rgba(29, 78, 216, 0.4);
 }
 
 .btn-tuxtla-submit:disabled {
-  opacity: 0.65;
+  opacity: 0.7;
   cursor: not-allowed;
   transform: none;
 }
@@ -317,277 +405,42 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Panel de Cuentas Demo Profesional y Colorido ──────────── */
-.demo-accounts-container {
-  margin-top: 1.6rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid #e2e8f0;
-}
-
-.demo-accounts-header-wrap {
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
-  margin-bottom: 0.9rem;
-}
-
-.demo-header-line {
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
-}
-
-.demo-accounts-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: 0.7rem;
-  font-weight: 800;
-  color: #475569;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: #f8fafc;
-  padding: 0.3rem 0.75rem;
-  border-radius: 9999px;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-.demo-badge-icon {
-  color: #f59e0b; /* Amber spark */
-}
-
-.demo-roles-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.65rem;
-}
-
-/* Tarjeta individual de rol */
-.demo-role-card {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.6rem 0.75rem;
-  border-radius: 14px;
-  border: 1.5px solid transparent;
-  cursor: pointer;
-  position: relative;
-  text-align: left;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-  user-select: none;
-  background: #ffffff;
-}
-
-.demo-role-card:hover {
-  transform: translateY(-2px);
-}
-
-.demo-role-card:active {
-  transform: translateY(0);
-}
-
-/* Caja de icono dentro de la tarjeta */
-.role-icon-box {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
-}
-
-/* Textos de rol */
-.role-info-box {
+/* ── Pie de Confianza Institucional en la Tarjeta ───────────── */
+.card-footer-trust {
+  margin-top: 1.75rem;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  line-height: 1.2;
-}
-
-.role-name {
-  font-size: 0.88rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  transition: color 0.2s ease;
-}
-
-.role-desc {
-  font-size: 0.68rem;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  margin-top: 1px;
-  opacity: 0.85;
-  transition: color 0.2s ease;
-}
-
-/* Indicador flotante de seleccionado */
-.role-check-indicator {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 19px;
-  height: 19px;
-  border-radius: 50%;
-  background: #ffffff;
-  display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-  animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  text-align: center;
 }
 
-@keyframes popIn {
-  from { transform: scale(0.4); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+.trust-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e2e8f0 30%, #e2e8f0 70%, transparent);
+  margin-bottom: 1rem;
 }
 
-/* ── Temas por Rol ──────────────────────────────────────────── */
-
-/* 1. Admin — Púrpura / Índigo Real */
-.demo-role-admin {
-  background: #faf5ff;
-  border-color: #e9d5ff;
-  color: #581c87;
-}
-.demo-role-admin .role-icon-box {
-  background: #f3e8ff;
-  color: #7e22ce;
-}
-.demo-role-admin:hover {
-  background: #f3e8ff;
-  border-color: #d8b4fe;
-  box-shadow: 0 4px 14px rgba(126, 34, 206, 0.15);
-}
-.demo-role-admin.is-selected {
-  background: linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%);
-  border-color: #581c87;
-  color: #ffffff;
-  box-shadow: 0 6px 18px rgba(126, 34, 206, 0.35);
-}
-.demo-role-admin.is-selected .role-icon-box {
-  background: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
-}
-.demo-role-admin.is-selected .role-check-indicator {
-  color: #7e22ce;
-}
-
-/* 2. Supervisor — Verde Esmeralda */
-.demo-role-supervisor {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
-  color: #14532d;
-}
-.demo-role-supervisor .role-icon-box {
-  background: #dcfce7;
-  color: #15803d;
-}
-.demo-role-supervisor:hover {
-  background: #dcfce7;
-  border-color: #86efac;
-  box-shadow: 0 4px 14px rgba(21, 128, 61, 0.15);
-}
-.demo-role-supervisor.is-selected {
-  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-  border-color: #14532d;
-  color: #ffffff;
-  box-shadow: 0 6px 18px rgba(21, 128, 61, 0.35);
-}
-.demo-role-supervisor.is-selected .role-icon-box {
-  background: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
-}
-.demo-role-supervisor.is-selected .role-check-indicator {
-  color: #15803d;
-}
-
-/* 3. Capturista — Ámbar / Naranja Vivo */
-.demo-role-capturista {
-  background: #fffbeb;
-  border-color: #fde68a;
-  color: #78350f;
-}
-.demo-role-capturista .role-icon-box {
-  background: #fef3c7;
-  color: #b45309;
-}
-.demo-role-capturista:hover {
-  background: #fef3c7;
-  border-color: #fcd34d;
-  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.16);
-}
-.demo-role-capturista.is-selected {
-  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
-  border-color: #78350f;
-  color: #ffffff;
-  box-shadow: 0 6px 18px rgba(217, 119, 6, 0.35);
-}
-.demo-role-capturista.is-selected .role-icon-box {
-  background: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
-}
-.demo-role-capturista.is-selected .role-check-indicator {
-  color: #d97706;
-}
-
-/* 4. Consultor — Azul Océano / Turquesa */
-.demo-role-consultor {
-  background: #f0f9ff;
-  border-color: #bae6fd;
-  color: #0c4a6e;
-}
-.demo-role-consultor .role-icon-box {
-  background: #e0f2fe;
-  color: #0284c7;
-}
-.demo-role-consultor:hover {
-  background: #e0f2fe;
-  border-color: #7dd3fc;
-  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.15);
-}
-.demo-role-consultor.is-selected {
-  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
-  border-color: #0c4a6e;
-  color: #ffffff;
-  box-shadow: 0 6px 18px rgba(2, 132, 199, 0.35);
-}
-.demo-role-consultor.is-selected .role-icon-box {
-  background: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
-}
-.demo-role-consultor.is-selected .role-check-indicator {
-  color: #0284c7;
-}
-
-/* ── Footer de contraseña demo ──────────────────────────────── */
-.demo-pwd-footer {
+.trust-content {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
   font-size: 0.76rem;
-  color: #64748b;
-  margin-top: 0.95rem;
-  font-weight: 500;
+  font-weight: 600;
+  color: #475569;
 }
 
-.pwd-key-icon {
+.trust-icon {
+  color: #0284c7;
+  flex-shrink: 0;
+}
+
+.trust-note {
+  font-size: 0.7rem;
   color: #94a3b8;
-}
-
-.demo-pwd-code {
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  color: #0f172a;
-  padding: 0.15rem 0.5rem;
-  border-radius: 6px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-  font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.04em;
+  margin: 0.25rem 0 0 0;
+  font-weight: 500;
 }
 
 /* ── DISEÑO RESPONSIVO (Móviles, Tablets, Computadoras) ─────── */
@@ -602,7 +455,7 @@
     max-width: 480px;
   }
   .login-right-section {
-    flex: 0 0 390px;
+    flex: 0 0 400px;
   }
 }
 
@@ -620,44 +473,22 @@
   }
 
   .tuxtla-header-logo {
-    height: 46px;
+    height: 58px;
   }
 
   .tuxtla-login-container {
     flex-direction: column;
     align-items: center;
-    gap: 2.5rem;
+    gap: 2rem;
     margin: 0 auto;
   }
-  
+
   .login-left-section {
     max-width: 100%;
-    align-items: center;
-    text-align: center;
-  }
-
-  .login-illustration-container {
-    max-width: 420px;
-    margin-top: 0.5rem;
-  }
-
-  .login-right-section {
-    width: 100%;
-    max-width: 430px;
-  }
-}
-
-@media (max-width: 480px) {
-  .tuxtla-login-wrapper {
-    padding: 1.25rem 0.85rem 2rem 0.85rem;
-  }
-
-  .tuxtla-header-logo {
-    height: 38px;
   }
 
   .login-main-title {
-    font-size: 1.45rem;
+    font-size: 1.7rem;
   }
 
   .login-subtitle-tag {
@@ -665,11 +496,52 @@
   }
 
   .login-illustration-container {
-    max-width: 310px;
+    max-width: 320px;
+    margin-top: 0.25rem;
+  }
+
+  .login-illustration-img {
+    max-height: 240px;
+  }
+
+  .login-right-section {
+    width: 100%;
+    max-width: 440px;
+    flex: none;
   }
 
   .tuxtla-auth-card {
-    padding: 2rem 1.25rem 1.5rem;
-    border-radius: 18px;
+    padding: 2rem 1.5rem 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tuxtla-login-wrapper {
+    padding: 1rem 0.75rem 2rem 0.75rem;
+  }
+
+  .tuxtla-header-logo {
+    height: 46px;
+  }
+
+  .login-main-title {
+    font-size: 1.45rem;
+  }
+
+  .login-subtitle-tag {
+    font-size: 0.68rem;
+  }
+
+  .login-illustration-container {
+    display: none; /* Ocultar ilustración en pantallas muy compactas para centrar la atención en el acceso */
+  }
+
+  .tuxtla-auth-card {
+    padding: 1.75rem 1.25rem 1.5rem;
+    border-radius: 20px;
+  }
+
+  .card-login-title {
+    font-size: 1.6rem;
   }
 }
