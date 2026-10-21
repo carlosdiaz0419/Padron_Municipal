@@ -64,6 +64,9 @@ function AppRouter() {
         <Route element={<RoleRoute allowedRoles={['admin']} />}>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
+            <Route path="beneficiarios" element={<CapturistaBeneficiarios />} />
+            <Route path="beneficiarios/nuevo" element={<CapturistaFormulario />} />
+            <Route path="beneficiarios/editar/:id" element={<CapturistaFormulario />} />
             <Route path="usuarios" element={<AdminUsuarios />} />
             <Route path="catalogos" element={<AdminCatalogos />} />
             <Route path="reportes" element={<AdminReportes />} />
@@ -77,6 +80,9 @@ function AppRouter() {
         <Route element={<RoleRoute allowedRoles={['supervisor']} />}>
           <Route path="/supervisor" element={<SupervisorLayout />}>
             <Route index element={<SupervisorDashboard />} />
+            <Route path="beneficiarios" element={<CapturistaBeneficiarios />} />
+            <Route path="beneficiarios/nuevo" element={<CapturistaFormulario />} />
+            <Route path="beneficiarios/editar/:id" element={<CapturistaFormulario />} />
             <Route path="validacion" element={<SupervisorValidacion />} />
             <Route path="reportes" element={<SupervisorReportes />} />
           </Route>

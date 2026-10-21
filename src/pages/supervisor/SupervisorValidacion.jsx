@@ -294,11 +294,11 @@ function SupervisorValidacion() {
         flexWrap: 'wrap',
         gap: '0.75rem'
       }}>
-        <div style={{ display: 'inline-flex', background: '#e2e8f0', borderRadius: '8px', padding: '3px' }}>
+        <div style={{ display: 'inline-flex', background: '#e2e8f0', borderRadius: '8px', padding: '3px', flexWrap: 'wrap', maxWidth: '100%' }}>
           <button
             onClick={() => setActiveTab('pendientes')}
             style={{
-              padding: '0.45rem 1rem',
+              padding: '0.45rem 0.85rem',
               borderRadius: '6px',
               border: 'none',
               fontSize: '0.82rem',
@@ -315,7 +315,7 @@ function SupervisorValidacion() {
           <button
             onClick={() => setActiveTab('validados')}
             style={{
-              padding: '0.45rem 1rem',
+              padding: '0.45rem 0.85rem',
               borderRadius: '6px',
               border: 'none',
               fontSize: '0.82rem',
@@ -332,7 +332,7 @@ function SupervisorValidacion() {
           <button
             onClick={() => setActiveTab('rechazados')}
             style={{
-              padding: '0.45rem 1rem',
+              padding: '0.45rem 0.85rem',
               borderRadius: '6px',
               border: 'none',
               fontSize: '0.82rem',
@@ -348,7 +348,7 @@ function SupervisorValidacion() {
           </button>
         </div>
 
-        <div style={{ position: 'relative', minWidth: '280px', flex: '1', maxWidth: '360px' }}>
+        <div style={{ position: 'relative', minWidth: '200px', flex: '1 1 240px', maxWidth: '100%' }}>
           <input
             type="text"
             placeholder="Buscar por folio, nombre o CURP..."
@@ -666,11 +666,13 @@ function SupervisorValidacion() {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              padding: '1rem 1.5rem',
+              flexWrap: 'wrap',
+              gap: '0.65rem',
+              padding: '1rem 1.25rem',
               borderTop: '1px solid #e2e8f0',
               background: '#f8fafc'
             }}>
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
                 <button
                   onClick={() => setInspectModal(null)}
                   className="btn-sm"
@@ -699,7 +701,7 @@ function SupervisorValidacion() {
                 </button>
               </div>
 
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                 {canRechazar && (
                   <button
                     onClick={() => {

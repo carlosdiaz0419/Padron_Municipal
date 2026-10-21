@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   Download, 
@@ -18,6 +18,20 @@ function SupervisorReportes() {
   const [downloading, setDownloading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [resumen, setResumen] = useState({ total: 0, activos: 0, pendientes: 0, pct: 0 });
+
+  useEffect(() => {
+    getBeneficiarios({ limit: 500 })
+      .then((res) => {
+        const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
+        const total = lista.length;
+        const activos = lista.filter((b) => (b.estatus || 'activo').toLowerCase() === 'activo').length;
+        const pendientes = lista.filter((b) => (b.estatus || '').toLowerCase() === 'pendiente').length;
+        const pct = total > 0 ? Math.round((activos / total) * 100) : 0;
+        setResumen({ total, activos, pendientes, pct });
+      })
+      .catch(() => {});
+  }, []);
 
   const showToast = (message) => {
     setNotification(message);
@@ -25,7 +39,7 @@ function SupervisorReportes() {
   };
 
   const getMetricasSupervision = async () => {
-    const res = await getBeneficiarios({ limit: 500 });
+    const res = await getBeneficiarios({ limit: 100 });
     const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
 
     const total = lista.length;
@@ -220,25 +234,25 @@ function SupervisorReportes() {
               <div style={{ marginBottom: '1.5rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>
                   <span>Progreso de Dictaminación</span>
-                  <span style={{ color: '#059669' }}>67% Completado</span>
+                  <span style={{ color: '#059669' }}>{resumen.pct}% Completado</span>
                 </div>
                 <div style={{ width: '100%', height: '10px', background: '#e2e8f0', borderRadius: '999px', overflow: 'hidden' }}>
-                  <div style={{ width: '67%', height: '100%', background: 'linear-gradient(90deg, #10b981, #059669)', borderRadius: '999px' }}></div>
+                  <div style={{ width: `${resumen.pct}%`, height: '100%', background: 'linear-gradient(90deg, #10b981, #059669)', borderRadius: '999px' }}></div>
                 </div>
               </div>
 
               {/* MÉTRICAS */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.75rem', marginBottom: '1.5rem' }}>
                 <div style={{ padding: '0.85rem', background: '#f8fafc', borderRadius: '10px', textAlign: 'center', border: '1px solid #e2e8f0' }}>
-                  <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a' }}>3</span>
+                  <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#0f172a' }}>{resumen.total}</span>
                   <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.15rem' }}>Total Expedientes</div>
                 </div>
                 <div style={{ padding: '0.85rem', background: '#f0fdf4', borderRadius: '10px', textAlign: 'center', border: '1px solid #dcfce7' }}>
-                  <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#15803d' }}>2</span>
+                  <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#15803d' }}>{resumen.activos}</span>
                   <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.15rem' }}>Aprobados</div>
                 </div>
                 <div style={{ padding: '0.85rem', background: '#fffbeb', borderRadius: '10px', textAlign: 'center', border: '1px solid #fef3c7' }}>
-                  <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#b45309' }}>1</span>
+                  <span style={{ fontSize: '1.3rem', fontWeight: 800, color: '#b45309' }}>{resumen.pendientes}</span>
                   <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.15rem' }}>Pendientes</div>
                 </div>
               </div>

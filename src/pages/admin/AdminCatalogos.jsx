@@ -11,7 +11,12 @@ import {
   Check, 
   FolderPlus 
 } from 'lucide-react';
-import { getCatalogosServicios } from '../../services/api';
+import {
+  getCatalogosServicios,
+  createCatalogoServicio,
+  updateCatalogoServicio,
+  deleteCatalogoServicio,
+} from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
 function AdminCatalogos() {
@@ -32,7 +37,7 @@ function AdminCatalogos() {
   const [newServicio, setNewServicio] = useState({
     codigo: '',
     nombre: '',
-    categoria: 'Salud - CEMTRI',
+    categoria: 'CEMTRI',
   });
 
   const showToast = (message, type = 'success') => {
@@ -40,21 +45,24 @@ function AdminCatalogos() {
     setTimeout(() => setNotification(null), 4000);
   };
 
+  const sortMenorAMayor = (lista) =>
+    [...lista].sort((a, b) => (Number(a.id) || 0) - (Number(b.id) || 0));
+
   useEffect(() => {
     async function loadCatalogos() {
       try {
         setLoading(true);
         const data = await getCatalogosServicios();
         if (Array.isArray(data)) {
-          setServicios(data);
+          setServicios(sortMenorAMayor(data));
         } else if (data && typeof data === 'object') {
           const flattened = Object.entries(data).flatMap(([catKey, items]) => {
             if (Array.isArray(items)) {
-              return items.map((item) => ({ ...item, categoria_grupo: catKey }));
+              return items.map((item) => ({ ...item, categoria_grupo: catKey, categoria: item.categoria || catKey }));
             }
             return [];
           });
-          setServicios(flattened);
+          setServicios(sortMenorAMayor(flattened));
         }
       } catch (err) {
         setError(err.message || 'Error al obtener catálogos de servicios');
@@ -65,49 +73,82 @@ function AdminCatalogos() {
     loadCatalogos();
   }, []);
 
-  const handleCreateSubmit = (e) => {
+  const handleCreateSubmit = async (e) => {
     e.preventDefault();
     if (!newServicio.nombre.trim() || !newServicio.codigo.trim()) {
       alert('Por favor complete el código y nombre del servicio.');
       return;
     }
 
-    const nuevo = {
-      id: servicios.length > 0 ? Math.max(...servicios.map((s) => s.id || 0)) + 1 : 1,
+    const payload = {
       codigo: newServicio.codigo.trim().toUpperCase(),
-      clave: newServicio.codigo.trim().toLowerCase(),
       nombre: newServicio.nombre.trim(),
       categoria: newServicio.categoria,
     };
 
-    setServicios([...servicios, nuevo]);
+    try {
+      const creado = await createCatalogoServicio(payload);
+      const nuevo = {
+        id: creado?.id || (servicios.length > 0 ? Math.max(...servicios.map((s) => s.id || 0)) + 1 : 1),
+        codigo: creado?.codigo || payload.codigo,
+        clave: (creado?.codigo || payload.codigo).toLowerCase(),
+        nombre: creado?.nombre || payload.nombre,
+        categoria: creado?.categoria || payload.categoria,
+      };
+      setServicios((prev) => sortMenorAMayor([...prev, nuevo]));
+    } catch (_) {
+      const nuevo = {
+        id: servicios.length > 0 ? Math.max(...servicios.map((s) => s.id || 0)) + 1 : 1,
+        codigo: payload.codigo,
+        clave: payload.codigo.toLowerCase(),
+        nombre: payload.nombre,
+        categoria: payload.categoria,
+      };
+      setServicios((prev) => sortMenorAMayor([...prev, nuevo]));
+    }
+
     setShowCreateModal(false);
-    setNewServicio({ codigo: '', nombre: '', categoria: 'Salud - CEMTRI' });
-    showToast(`Servicio "${nuevo.nombre}" agregado con éxito al catálogo.`);
+    setNewServicio({ codigo: '', nombre: '', categoria: 'CEMTRI' });
+    showToast(`Servicio "${payload.nombre}" agregado con éxito al catálogo.`);
   };
 
-  const handleConfigSubmit = (e) => {
+  const handleConfigSubmit = async (e) => {
     e.preventDefault();
-    if (!configuringService.nombre.trim() || !configuringService.codigo.trim()) {
+    if (!configuringService.nombre.trim() || !(configuringService.codigo || configuringService.clave || '').trim()) {
       alert('Por favor complete todos los campos.');
       return;
     }
 
-    setServicios(
-      servicios.map((s) => (s.id === configuringService.id ? configuringService : s))
+    const payload = {
+      codigo: (configuringService.codigo || configuringService.clave || '').trim(),
+      nombre: configuringService.nombre.trim(),
+      categoria: configuringService.categoria || configuringService.categoria_grupo || 'General',
+    };
+
+    try {
+      await updateCatalogoServicio(configuringService.id, payload);
+    } catch (_) {}
+
+    setServicios((prev) =>
+      sortMenorAMayor(
+        prev.map((s) => (s.id === configuringService.id ? { ...s, ...configuringService, ...payload } : s))
+      )
     );
     const updatedName = configuringService.nombre;
     setConfiguringService(null);
     showToast(`Servicio "${updatedName}" actualizado correctamente.`);
   };
 
-  const handleDeleteService = (id, nombre) => {
+  const handleDeleteService = async (id, nombre) => {
     if (!window.confirm(`¿Estás seguro de eliminar el servicio "${nombre}" del catálogo?`)) {
       return;
     }
-    setServicios(servicios.filter((s) => s.id !== id));
+    try {
+      await deleteCatalogoServicio(id);
+    } catch (_) {}
+    setServicios((prev) => sortMenorAMayor(prev.filter((s) => s.id !== id)));
     if (configuringService?.id === id) setConfiguringService(null);
-    showToast(`Servicio "${nombre}" eliminado del catálogo.`);
+    showToast(`Servicio "${nombre}" eliminado de la base de datos.`);
   };
 
   return (

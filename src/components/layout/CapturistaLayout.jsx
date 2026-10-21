@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { 
@@ -6,17 +6,49 @@ import {
   LayoutDashboard, 
   ClipboardList, 
   UserPlus, 
-  LogOut 
+  LogOut,
+  Menu,
+  X
 } from 'lucide-react';
 import './Layout.css';
 
 function CapturistaLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
   return (
     <div className="layout layout--capturista">
-      <aside className="sidebar sidebar--capturista">
+      {/* ── BARRA SUPERIOR MÓVIL / TABLET ── */}
+      <header className="mobile-topbar mobile-topbar--capturista">
+        <div className="mobile-topbar__brand">
+          <div className="sidebar__logo-badge">
+            <Building2 size={20} />
+          </div>
+          <div className="sidebar__header-info">
+            <h2>Padrón Social</h2>
+            <span className="sidebar__rol-pill">Capturista</span>
+          </div>
+        </div>
+        <button
+          type="button"
+          className="mobile-topbar__toggle"
+          onClick={() => setMobileMenuOpen((prev) => !prev)}
+          aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+          aria-expanded={mobileMenuOpen}
+        >
+          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </header>
+
+      {/* ── OVERLAY MÓVIL ── */}
+      {mobileMenuOpen && (
+        <div className="sidebar-backdrop" onClick={closeMobileMenu} aria-hidden="true" />
+      )}
+
+      <aside className={`sidebar sidebar--capturista ${mobileMenuOpen ? 'sidebar--open' : ''}`}>
         <div className="sidebar__header">
           <div className="sidebar__logo-badge">
             <Building2 size={22} />
@@ -25,18 +57,26 @@ function CapturistaLayout() {
             <h2>Padrón Social</h2>
             <span className="sidebar__rol-pill">Capturista</span>
           </div>
+          <button
+            type="button"
+            className="sidebar__close-btn"
+            onClick={closeMobileMenu}
+            aria-label="Cerrar menú"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <nav className="sidebar__nav">
-          <NavLink to="/capturista" end>
+          <NavLink to="/capturista" end onClick={closeMobileMenu}>
             <span className="sidebar__nav-icon"><LayoutDashboard size={18} /></span>
             <span>Dashboard</span>
           </NavLink>
-          <NavLink to="/capturista/beneficiarios">
+          <NavLink to="/capturista/beneficiarios" onClick={closeMobileMenu}>
             <span className="sidebar__nav-icon"><ClipboardList size={18} /></span>
             <span>Beneficiarios</span>
           </NavLink>
-          <NavLink to="/capturista/beneficiarios/nuevo">
+          <NavLink to="/capturista/beneficiarios/nuevo" onClick={closeMobileMenu}>
             <span className="sidebar__nav-icon"><UserPlus size={18} /></span>
             <span>Nuevo Registro</span>
           </NavLink>
@@ -55,7 +95,7 @@ function CapturistaLayout() {
               </span>
             </div>
           </div>
-          <button onClick={() => { logout(); navigate('/login'); }} className="btn-logout" title="Cerrar Sesión">
+          <button onClick={() => { closeMobileMenu(); logout(); navigate('/login'); }} className="btn-logout" title="Cerrar Sesión">
             <LogOut size={16} />
           </button>
         </div>

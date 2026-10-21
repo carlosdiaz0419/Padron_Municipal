@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   ClipboardList, 
@@ -10,11 +10,28 @@ import {
   Clock, 
   Info 
 } from 'lucide-react';
+import { getBeneficiarios } from '../../services/api';
 
 /**
- * CapturistaDashboard — Panel del Capturista con diseño colorido, moderno e interactivo.
+ * CapturistaDashboard — Panel del Capturista conectado con los registros reales de la Base de Datos.
  */
 function CapturistaDashboard() {
+  const [totalPadron, setTotalPadron] = useState(0);
+
+  useEffect(() => {
+    let mounted = true;
+    getBeneficiarios({ limit: 100 })
+      .then((res) => {
+        if (!mounted) return;
+        const list = res?.beneficiarios || (Array.isArray(res) ? res : []);
+        setTotalPadron(res?.total ?? list.length);
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div>
       {/* ── HERO BANNER DEL CAPTURISTA ── */}
@@ -40,14 +57,14 @@ function CapturistaDashboard() {
         </div>
       </div>
 
-      {/* ── MÉTRICAS DEL CAPTURISTA ── */}
+      {/* ── MÉTRICAS DEL CAPTURISTA (BASE DE DATOS REAL) ── */}
       <div className="stats-grid">
         <div className="stat-card stat-card--amber">
           <div className="stat-card__info">
-            <span className="stat-card__label">Capturas del Mes</span>
-            <span className="stat-card__value">142</span>
+            <span className="stat-card__label">Capturas Registradas</span>
+            <span className="stat-card__value">{totalPadron}</span>
             <span className="stat-card__badge" style={{ color: '#d97706' }}>
-              Expedientes Ingresados
+              Expedientes en Base de Datos
             </span>
           </div>
           <div className="stat-card__icon">
@@ -58,7 +75,7 @@ function CapturistaDashboard() {
         <div className="stat-card stat-card--green">
           <div className="stat-card__info">
             <span className="stat-card__label">Padrón Municipal</span>
-            <span className="stat-card__value">1,280</span>
+            <span className="stat-card__value">{totalPadron}</span>
             <span className="stat-card__badge" style={{ color: '#059669' }}>
               Ciudadanos Registrados
             </span>
@@ -70,10 +87,10 @@ function CapturistaDashboard() {
 
         <div className="stat-card stat-card--blue">
           <div className="stat-card__info">
-            <span className="stat-card__label">Tiempo Promedio por Alta</span>
-            <span className="stat-card__value">3 min</span>
+            <span className="stat-card__label">Autocompletado Oficial</span>
+            <span className="stat-card__value">CURP</span>
             <span className="stat-card__badge" style={{ color: '#2563eb' }}>
-              Cálculo Automático de CURP
+              Cálculo Automático de Edad y Sexo
             </span>
           </div>
           <div className="stat-card__icon">

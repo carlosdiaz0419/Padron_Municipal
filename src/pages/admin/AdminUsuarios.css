@@ -281,11 +281,14 @@
   border-radius: 16px;
   border: 1px solid #e2e8f0;
   box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
-  overflow: hidden;
+  overflow-x: auto;
+  max-inline-size: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .perm-matrix-table {
   width: 100%;
+  min-width: 620px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.88rem;
@@ -429,6 +432,7 @@
 .user-overrides-modal {
   max-width: 680px;
   max-height: 85vh;
+  max-height: 85dvh;
   display: flex;
   flex-direction: column;
 }
@@ -443,6 +447,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
   padding: 0.75rem 0.5rem;
   border-bottom: 1px solid #f1f5f9;
 }
@@ -536,6 +542,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   margin-top: 0.5rem;
   padding: 0.5rem 0.75rem;
   background: #f8fafc;
@@ -580,4 +588,59 @@
 .btn-copy-pwd:hover {
   background: #e2e8f0;
   color: #0f172a;
+}
+
+/* ── Adaptación Responsiva AdminUsuarios ───────────────────────── */
+@media (max-width: 768px) {
+  .admin-tabs-nav {
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-tab-btn {
+    padding: 0.65rem 1rem;
+    font-size: 0.86rem;
+  }
+
+  .role-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .perm-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.9rem 1rem;
+  }
+
+  .perm-toolbar__filters {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .perm-search-box,
+  .perm-search-box input,
+  .perm-filter-select {
+    width: 100%;
+  }
+
+  .perm-toolbar__actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .perm-toolbar__actions button {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .perm-module-title {
+    flex-wrap: wrap;
+  }
+
+  .perm-module-desc {
+    margin-left: 0;
+    width: 100%;
+  }
 }

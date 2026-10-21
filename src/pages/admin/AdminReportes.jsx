@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   Download, 
@@ -13,29 +13,44 @@ import {
   FileText
 } from 'lucide-react';
 import { getBeneficiarios } from '../../services/api';
-import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
+import { exportToExcel, exportToPDF, COLUMNAS_PADRON_COMPLETO } from '../../utils/exportUtils';
 
 function AdminReportes() {
   const [downloading, setDownloading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [activeModal, setActiveModal] = useState(null); // 'consolidado' | 'municipio' | null
+  const [beneficiariosList, setBeneficiariosList] = useState([]);
+
+  useEffect(() => {
+    getBeneficiarios({ limit: 500 })
+      .then((res) => {
+        const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
+        setBeneficiariosList(lista);
+      })
+      .catch(() => {});
+  }, []);
+
+  const totalBenef = beneficiariosList.length;
+  const mujeresCount = beneficiariosList.filter((b) => b.sexo === 'M').length;
+  const pctMujeresReal = totalBenef > 0 ? Math.round((mujeresCount / totalBenef) * 100) : 0;
+  const edades = beneficiariosList.map((b) => Number(b.edad)).filter((e) => !isNaN(e) && e > 0);
+  const edadPromedioReal = edades.length > 0 ? Math.round(edades.reduce((a, c) => a + c, 0) / edades.length) : 0;
+
+  const coloniasAgrupadas = Object.values(
+    beneficiariosList.reduce((acc, b) => {
+      const col = `${b.tipo_asentamiento || ''} ${b.nombre_asentamiento || ''}`.trim() || 'Sin especificar';
+      if (!acc[col]) acc[col] = { nombre: col, total: 0 };
+      acc[col].total += 1;
+      return acc;
+    }, {})
+  );
 
   const showToast = (message) => {
     setNotification(message);
     setTimeout(() => setNotification(null), 4000);
   };
 
-  const columnasConsolidado = [
-    { header: 'Folio', key: 'folio' },
-    { header: 'Nombre Completo', render: (b) => b.nombre_completo || b.nombre || '' },
-    { header: 'CURP', key: 'curp' },
-    { header: 'Edad', key: 'edad' },
-    { header: 'Sexo', key: 'sexo' },
-    { header: 'Discapacidad', key: 'tipo_discapacidad' },
-    { header: 'Ayuda Solicitada', key: 'tipo_ayuda_solicitada' },
-    { header: 'Colonia / Asentamiento', render: (b) => `${b.tipo_asentamiento || ''} ${b.nombre_asentamiento || ''}`.trim() },
-    { header: 'Estatus', render: (b) => (b.estatus || 'Activo').toUpperCase() }
-  ];
+  const columnasConsolidado = COLUMNAS_PADRON_COMPLETO;
 
   const columnasTerritorial = [
     { header: 'Folio', key: 'folio' },
@@ -50,7 +65,7 @@ function AdminReportes() {
   const handleExportConsolidadoExcel = async () => {
     try {
       setDownloading(true);
-      const res = await getBeneficiarios({ limit: 1000 });
+      const res = await getBeneficiarios({ limit: 100 });
       const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
       exportToExcel({
         filename: 'Padron_General_Consolidado_DIF_2027.xls',
@@ -70,7 +85,7 @@ function AdminReportes() {
   const handleExportConsolidadoPDF = async () => {
     try {
       setDownloading(true);
-      const res = await getBeneficiarios({ limit: 1000 });
+      const res = await getBeneficiarios({ limit: 100 });
       const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
       const total = lista.length;
       const mujeres = lista.filter((b) => b.sexo === 'M').length;
@@ -98,7 +113,7 @@ function AdminReportes() {
   const handleExportTerritorialExcel = async () => {
     try {
       setDownloading(true);
-      const res = await getBeneficiarios({ limit: 1000 });
+      const res = await getBeneficiarios({ limit: 100 });
       const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
       exportToExcel({
         filename: 'Distribucion_Territorial_DIF_2027.xls',
@@ -118,7 +133,7 @@ function AdminReportes() {
   const handleExportTerritorialPDF = async () => {
     try {
       setDownloading(true);
-      const res = await getBeneficiarios({ limit: 1000 });
+      const res = await getBeneficiarios({ limit: 100 });
       const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
       exportToPDF({
         title: 'Distribución Territorial de Beneficiarios',
@@ -281,15 +296,15 @@ function AdminReportes() {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.5rem' }}>
                 <div style={{ padding: '1rem', background: '#eff6ff', borderRadius: '10px', textAlign: 'center', border: '1px solid #dbeafe' }}>
-                  <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1d4ed8' }}>100%</span>
-                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.2rem' }}>Padrón Auditado</div>
+                  <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#1d4ed8' }}>{totalBenef}</span>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.2rem' }}>Total Beneficiarios</div>
                 </div>
                 <div style={{ padding: '1rem', background: '#f0fdf4', borderRadius: '10px', textAlign: 'center', border: '1px solid #dcfce7' }}>
-                  <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#15803d' }}>67%</span>
+                  <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#15803d' }}>{pctMujeresReal}%</span>
                   <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.2rem' }}>Mujeres (M)</div>
                 </div>
                 <div style={{ padding: '1rem', background: '#fef3c7', borderRadius: '10px', textAlign: 'center', border: '1px solid #fde68a' }}>
-                  <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#b45309' }}>50 años</span>
+                  <span style={{ fontSize: '1.4rem', fontWeight: 800, color: '#b45309' }}>{edadPromedioReal} años</span>
                   <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.2rem' }}>Edad Promedio</div>
                 </div>
               </div>
@@ -409,21 +424,19 @@ function AdminReportes() {
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td style={{ fontWeight: 600 }}>Colonia Los Limones</td>
-                      <td>Tuxtla Gutiérrez</td>
-                      <td style={{ textAlign: 'right', fontWeight: 700, color: '#2563eb' }}>1</td>
-                    </tr>
-                    <tr>
-                      <td style={{ fontWeight: 600 }}>Residencial La Hacienda</td>
-                      <td>Tuxtla Gutiérrez</td>
-                      <td style={{ textAlign: 'right', fontWeight: 700, color: '#2563eb' }}>1</td>
-                    </tr>
-                    <tr>
-                      <td style={{ fontWeight: 600 }}>Barrio San Roque</td>
-                      <td>Tuxtla Gutiérrez</td>
-                      <td style={{ textAlign: 'right', fontWeight: 700, color: '#2563eb' }}>1</td>
-                    </tr>
+                    {coloniasAgrupadas.length === 0 ? (
+                      <tr>
+                        <td colSpan="3" style={{ textAlign: 'center', color: '#64748b' }}>Sin registros en la base de datos</td>
+                      </tr>
+                    ) : (
+                      coloniasAgrupadas.map((c) => (
+                        <tr key={c.nombre}>
+                          <td style={{ fontWeight: 600 }}>{c.nombre}</td>
+                          <td>Tuxtla Gutiérrez</td>
+                          <td style={{ textAlign: 'right', fontWeight: 700, color: '#2563eb' }}>{c.total}</td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>

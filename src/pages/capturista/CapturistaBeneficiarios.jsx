@@ -26,7 +26,7 @@ import {
   FileSpreadsheet,
   Printer
 } from 'lucide-react';
-import { exportToExcel, exportToPDF, exportFichaBeneficiarioPDF } from '../../utils/exportUtils';
+import { exportToExcel, exportToPDF, exportFichaBeneficiarioPDF, COLUMNAS_PADRON_COMPLETO } from '../../utils/exportUtils';
 
 /**
  * CapturistaBeneficiarios — Listado de beneficiarios conectado con rutas completas:
@@ -35,11 +35,14 @@ import { exportToExcel, exportToPDF, exportFichaBeneficiarioPDF } from '../../ut
  * - POST /api/beneficiarios/:id/solicitudes
  */
 function CapturistaBeneficiarios() {
-  const { hasPermission } = useAuth();
+  const { user, hasPermission } = useAuth();
+  const rolePrefix = `/${(user?.rol || 'capturista').toLowerCase()}/beneficiarios`;
+  const canVer = hasPermission('beneficiarios.ver');
   const canCrear = hasPermission('beneficiarios.crear');
   const canEditar = hasPermission('beneficiarios.editar');
   const canEliminar = hasPermission('beneficiarios.eliminar');
   const canSolicitudes = hasPermission('beneficiarios.solicitudes');
+  const canExportar = hasPermission('reportes.exportar_general');
 
   const [beneficiarios, setBeneficiarios] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -113,24 +116,13 @@ function CapturistaBeneficiarios() {
     loadCatalogos();
   }, []);
 
-  const columnasExportar = [
-    { header: 'Folio', render: (b) => b.folio || `DIF-2027-${String(b.id).padStart(3, '0')}` },
-    { header: 'Nombre Completo', render: (b) => b.nombre_completo || `${b.nombre || ''} ${b.apellido_paterno || ''} ${b.apellido_materno || ''}`.trim() },
-    { header: 'CURP', key: 'curp' },
-    { header: 'Edad', key: 'edad' },
-    { header: 'Sexo', key: 'sexo' },
-    { header: 'Dependencia Emisora', render: (b) => b.dependencia || b.dependencia_emisora || 'DIF - Asistencia Social' },
-    { header: 'Discapacidad', key: 'tipo_discapacidad' },
-    { header: 'Ayuda Solicitada', key: 'tipo_ayuda_solicitada' },
-    { header: 'Asentamiento', render: (b) => `${b.tipo_asentamiento || 'Colonia'} ${b.nombre_asentamiento || ''}`.trim() },
-    { header: 'Estatus', render: (b) => (b.estatus || 'activo').toUpperCase() }
-  ];
+  const columnasExportar = COLUMNAS_PADRON_COMPLETO;
 
   const handleExportExcel = async () => {
     try {
       let dataToExport = beneficiarios;
       if (totalCount > beneficiarios.length) {
-        const res = await getBeneficiarios({ limit: 1000, q: searchTerm.trim() || undefined });
+        const res = await getBeneficiarios({ limit: 100, q: searchTerm.trim() || undefined });
         dataToExport = res?.beneficiarios || dataToExport;
       }
       exportToExcel({
@@ -151,7 +143,7 @@ function CapturistaBeneficiarios() {
     try {
       let dataToExport = beneficiarios;
       if (totalCount > beneficiarios.length) {
-        const res = await getBeneficiarios({ limit: 1000, q: searchTerm.trim() || undefined });
+        const res = await getBeneficiarios({ limit: 100, q: searchTerm.trim() || undefined });
         dataToExport = res?.beneficiarios || dataToExport;
       }
       exportToPDF({
@@ -249,6 +241,20 @@ function CapturistaBeneficiarios() {
     }
   };
 
+  if (!canVer) {
+    return (
+      <div style={{ padding: '2.5rem', background: '#fff', borderRadius: '14px', border: '1px solid #fecaca', textAlign: 'center', maxWidth: '580px', margin: '2rem auto' }}>
+        <AlertCircle size={40} color="#dc2626" style={{ marginBottom: '0.75rem' }} />
+        <h2 style={{ margin: '0 0 0.5rem', fontSize: '1.2rem', color: '#991b1b', fontWeight: 700 }}>
+          Acceso Restringido al Padrón de Beneficiarios
+        </h2>
+        <p style={{ margin: 0, color: '#64748b', fontSize: '0.92rem', lineHeight: 1.5 }}>
+          Tu cuenta o rol actual no cuenta con el permiso <strong>Ver Padrón de Beneficiarios</strong> (<code>beneficiarios.ver</code>). Solicita al Administrador que lo habilite en la Matriz de Permisos o en Permisos Individuales.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -257,44 +263,48 @@ function CapturistaBeneficiarios() {
           <p className="page-subtitle">Listado oficial de ciudadanos registrados en formatos exportables.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
-          <button
-            onClick={handleExportExcel}
-            className="btn-secondary"
-            title="Exportar padrón a Microsoft Excel (.xls)"
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.45rem', 
-              background: '#f0fdf4', 
-              color: '#166534', 
-              borderColor: '#bbf7d0', 
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            <FileSpreadsheet size={16} color="#16a34a" />
-            <span>Excel (.xls)</span>
-          </button>
-          <button
-            onClick={handleExportPDF}
-            className="btn-secondary"
-            title="Exportar padrón en documento PDF oficial"
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: '0.45rem', 
-              background: '#eff6ff', 
-              color: '#1d4ed8', 
-              borderColor: '#bfdbfe', 
-              fontWeight: 600,
-              cursor: 'pointer'
-            }}
-          >
-            <Download size={16} color="#2563eb" />
-            <span>Padrón PDF</span>
-          </button>
+          {canExportar && (
+            <>
+              <button
+                onClick={handleExportExcel}
+                className="btn-secondary"
+                title="Exportar padrón a Microsoft Excel (.xls)"
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.45rem', 
+                  background: '#f0fdf4', 
+                  color: '#166534', 
+                  borderColor: '#bbf7d0', 
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                <FileSpreadsheet size={16} color="#16a34a" />
+                <span>Excel (.xls)</span>
+              </button>
+              <button
+                onClick={handleExportPDF}
+                className="btn-secondary"
+                title="Exportar padrón en documento PDF oficial"
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.45rem', 
+                  background: '#eff6ff', 
+                  color: '#1d4ed8', 
+                  borderColor: '#bfdbfe', 
+                  fontWeight: 600,
+                  cursor: 'pointer'
+                }}
+              >
+                <Download size={16} color="#2563eb" />
+                <span>Padrón PDF</span>
+              </button>
+            </>
+          )}
           {canCrear && (
-            <Link to="/capturista/beneficiarios/nuevo" className="btn-primary">
+            <Link to={`${rolePrefix}/nuevo`} className="btn-primary">
               <Plus size={16} />
               <span>Nuevo Beneficiario</span>
             </Link>
@@ -317,8 +327,8 @@ function CapturistaBeneficiarios() {
       )}
 
       {/* ── BARRA DE BÚSQUEDA ── */}
-      <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem' }}>
-        <div style={{ position: 'relative', flex: 1 }}>
+      <form onSubmit={handleSearchSubmit} style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flex: '1 1 220px', minWidth: 0 }}>
           <input
             type="text"
             placeholder="Buscar por Nombre, Apellidos o CURP (parámetros 'q' y 'curp')..."
@@ -423,7 +433,7 @@ function CapturistaBeneficiarios() {
 
                         {/* Botón Editar (PUT /api/beneficiarios/:id) */}
                         {canEditar && (
-                          <Link to={`/capturista/beneficiarios/editar/${b.id}`} className="btn-sm" title="Editar expediente">
+                          <Link to={`${rolePrefix}/editar/${b.id}`} className="btn-sm" title="Editar expediente">
                             <Edit3 size={13} />
                             <span>Editar</span>
                           </Link>
@@ -449,7 +459,7 @@ function CapturistaBeneficiarios() {
           </table>
 
           {/* ── PAGINACIÓN ── */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1rem', borderTop: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#64748b' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', padding: '1rem', borderTop: '1px solid #e2e8f0', fontSize: '0.85rem', color: '#64748b' }}>
             <span>Mostrando página {page} de {totalPages} ({totalCount} beneficiarios en total)</span>
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button 

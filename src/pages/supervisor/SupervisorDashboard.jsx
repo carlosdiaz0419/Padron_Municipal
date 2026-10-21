@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
+  ClipboardList,
   CheckSquare, 
   BarChart3, 
   ArrowRight, 
@@ -10,12 +11,30 @@ import {
   TrendingUp,
   Info 
 } from 'lucide-react';
+import { getBeneficiarios } from '../../services/api';
 
 /**
- * SupervisorDashboard — Panel principal del Supervisor con diseño moderno,
- * KPIs de cotejo, módulos interactivos con enlaces directos y tarjeta informativa.
+ * SupervisorDashboard — Panel principal del Supervisor conectado con métricas reales de la Base de Datos.
  */
 function SupervisorDashboard() {
+  const [stats, setStats] = useState({ validados: 0, pendientes: 0, total: 0 });
+
+  useEffect(() => {
+    let mounted = true;
+    getBeneficiarios({ limit: 100 })
+      .then((res) => {
+        if (!mounted) return;
+        const list = res?.beneficiarios || (Array.isArray(res) ? res : []);
+        const validados = list.filter((b) => (b.estatus || 'activo') === 'activo').length;
+        const pendientes = list.filter((b) => b.estatus === 'pendiente').length;
+        setStats({ validados, pendientes, total: list.length });
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <div>
       {/* ── HERO BANNER DEL SUPERVISOR ── */}
@@ -41,14 +60,14 @@ function SupervisorDashboard() {
         </div>
       </div>
 
-      {/* ── METRICAS RÁPIDAS DE SUPERVISIÓN ── */}
+      {/* ── METRICAS RÁPIDAS DE SUPERVISIÓN (BASE DE DATOS REAL) ── */}
       <div className="stats-grid">
         <div className="stat-card stat-card--green">
           <div className="stat-card__info">
             <span className="stat-card__label">Expedientes Validados</span>
-            <span className="stat-card__value">847</span>
+            <span className="stat-card__value">{stats.validados}</span>
             <span className="stat-card__badge" style={{ color: '#059669' }}>
-              Aprobados Oficialmente
+              Aprobados en Base de Datos
             </span>
           </div>
           <div className="stat-card__icon">
@@ -59,7 +78,7 @@ function SupervisorDashboard() {
         <div className="stat-card stat-card--amber">
           <div className="stat-card__info">
             <span className="stat-card__label">Pendientes de Revisión</span>
-            <span className="stat-card__value">12</span>
+            <span className="stat-card__value">{stats.pendientes}</span>
             <span className="stat-card__badge" style={{ color: '#d97706' }}>
               Requieren Dictamen
             </span>
@@ -71,10 +90,10 @@ function SupervisorDashboard() {
 
         <div className="stat-card stat-card--blue">
           <div className="stat-card__info">
-            <span className="stat-card__label">Cobertura de Programas</span>
-            <span className="stat-card__value">100%</span>
+            <span className="stat-card__label">Total en Padrón</span>
+            <span className="stat-card__value">{stats.total}</span>
             <span className="stat-card__badge" style={{ color: '#2563eb' }}>
-              Zonas de Atención Prioritaria
+              Registros en Base de Datos
             </span>
           </div>
           <div className="stat-card__icon">
@@ -96,6 +115,27 @@ function SupervisorDashboard() {
       </div>
 
       <div className="cards-grid">
+        {/* Módulo 0: Padrón de Beneficiarios */}
+        <Link to="/supervisor/beneficiarios" className="module-card-link">
+          <div className="module-card module-card--amber">
+            <div className="module-card__accent"></div>
+            <div className="module-card__header">
+              <div className="module-card__icon-wrap">
+                <ClipboardList size={24} />
+              </div>
+              <span className="module-card__category">Padrón</span>
+            </div>
+            <h3 className="module-card__title">Padrón de Beneficiarios</h3>
+            <p className="module-card__desc">
+              Consulta el listado oficial de beneficiarios, exporta en Excel o PDF, imprime fichas oficiales, agrega ayudas, edita o registra nuevos expedientes.
+            </p>
+            <div className="module-card__footer">
+              <span>Ver listado general</span>
+              <span className="module-card__arrow"><ArrowRight size={16} /></span>
+            </div>
+          </div>
+        </Link>
+
         {/* Módulo 1: Validación */}
         <Link to="/supervisor/validacion" className="module-card-link">
           <div className="module-card module-card--green">

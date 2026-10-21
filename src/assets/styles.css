@@ -579,13 +579,22 @@
   border: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
   overflow-x: auto;
+  max-inline-size: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .data-table {
   width: 100%;
+  min-width: 640px;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 0.88rem;
+}
+
+.data-table thead {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 1;
 }
 
 .data-table th {
@@ -598,6 +607,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
 }
 
 .data-table td {
@@ -752,4 +762,107 @@ textarea {
   flex-direction: column;
   gap: 1rem;
   margin-bottom: 1.5rem;
+}
+
+/* ══════════════════════════════════════════════════
+   ADAPTACIÓN RESPONSIVA GLOBAL (TABLETS Y MÓVILES)
+══════════════════════════════════════════════════ */
+.page-title {
+  font-size: clamp(1.25rem, 1rem + 1.4vw, 1.65rem);
+  flex-wrap: wrap;
+}
+
+.dashboard-hero__title {
+  font-size: clamp(1.3rem, 1rem + 1.8vw, 1.85rem);
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    margin-bottom: 1.25rem;
+  }
+
+  .dashboard-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1.35rem 1.25rem;
+    gap: 1rem;
+    margin-bottom: 1.35rem;
+  }
+
+  .dashboard-hero__meta {
+    align-items: flex-start;
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.85rem;
+    margin-bottom: 1.35rem;
+  }
+
+  .stat-card {
+    padding: 1rem 1.1rem;
+  }
+
+  .stat-card__value {
+    font-size: 1.35rem;
+  }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .dashboard-tips-card {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem 1.15rem;
+    margin-top: 1.5rem;
+  }
+
+  .dashboard-tips__info {
+    align-items: flex-start;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.7rem 0.85rem;
+    font-size: 0.82rem;
+  }
+
+  .form-card {
+    padding: 1.15rem;
+  }
+
+  .form-section {
+    padding: 1rem;
+  }
+
+  .form-group {
+    min-width: 100%;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 0.65rem;
+  }
+
+  .form-actions button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    padding: 0.58rem 0.95rem;
+    font-size: 0.84rem;
+  }
 }

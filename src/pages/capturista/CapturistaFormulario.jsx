@@ -22,8 +22,10 @@ import {
   Scale,
   Utensils,
   ShieldCheck,
-  Building2
+  Building2,
+  Printer
 } from 'lucide-react';
+import { exportFichaBeneficiarioPDF } from '../../utils/exportUtils';
 import './CapturistaFormulario.css';
 
 const FORM_INITIAL = {
@@ -92,8 +94,9 @@ const FORM_INITIAL = {
 function CapturistaFormulario() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const esEdicion = Boolean(id);
+  const canGuardar = esEdicion ? hasPermission('beneficiarios.editar') : hasPermission('beneficiarios.crear');
 
   const [form, setForm] = useState(FORM_INITIAL);
   const [loading, setLoading] = useState(false);
@@ -164,6 +167,10 @@ function CapturistaFormulario() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!canGuardar) {
+      setError(`No tienes permiso para ${esEdicion ? 'editar' : 'registrar'} beneficiarios en el padrón.`);
+      return;
+    }
     setLoading(true);
     setError('');
     setSuccess('');
@@ -189,14 +196,45 @@ function CapturistaFormulario() {
 
   return (
     <div className="form-container">
-      <div className="page-header">
-        <h1 className="page-title">
-          <span>{esEdicion ? 'Editar Expediente DIF 2027' : 'Nuevo Registro — Padrón DIF 2027'}</span>
-        </h1>
-        <p className="page-subtitle">
-          Sistema para el Desarrollo Integral de la Familia (DIF) — Padrón de Beneficiarios para Otorgar "Ayudas Técnicas" (Anexo 5).
-        </p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 className="page-title">
+            <span>{esEdicion ? 'Editar Expediente DIF 2027' : 'Nuevo Registro — Padrón DIF 2027'}</span>
+          </h1>
+          <p className="page-subtitle">
+            Sistema para el Desarrollo Integral de la Familia (DIF) — Padrón de Beneficiarios para Otorgar "Ayudas Técnicas" (Anexo 5).
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => exportFichaBeneficiarioPDF(form)}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            padding: '0.55rem 1rem',
+            borderRadius: '8px',
+            border: '1px solid #bfdbfe',
+            background: '#eff6ff',
+            color: '#1e40af',
+            fontWeight: 700,
+            fontSize: '0.85rem',
+            cursor: 'pointer'
+          }}
+        >
+          <Printer size={16} />
+          <span>Descargar Cédula PDF Completa</span>
+        </button>
       </div>
+
+      {!canGuardar && (
+        <div className="alert alert--error" style={{ marginBottom: '1rem' }}>
+          <AlertCircle size={18} />
+          <span>
+            Modo de solo lectura: Tu rol o cuenta no tiene habilitado el permiso <strong>{esEdicion ? 'Editar Beneficiario (beneficiarios.editar)' : 'Registrar Nuevo Beneficiario (beneficiarios.crear)'}</strong>.
+          </span>
+        </div>
+      )}
 
       {error && (
         <div className="alert alert--error">
@@ -918,19 +956,21 @@ function CapturistaFormulario() {
             <ArrowLeft size={16} />
             <span>Cancelar</span>
           </button>
-          <button type="submit" className="btn-form-submit" disabled={loading}>
-            {loading ? (
-              <>
-                <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-                <span>Guardando en Padrón DIF...</span>
-              </>
-            ) : (
-              <>
-                <Save size={16} />
-                <span>{esEdicion ? 'Guardar Cambios' : 'Registrar Beneficiario DIF'}</span>
-              </>
-            )}
-          </button>
+          {canGuardar && (
+            <button type="submit" className="btn-form-submit" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                  <span>Guardando en Padrón DIF...</span>
+                </>
+              ) : (
+                <>
+                  <Save size={16} />
+                  <span>{esEdicion ? 'Guardar Cambios' : 'Registrar Beneficiario DIF'}</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
       </form>
     </div>

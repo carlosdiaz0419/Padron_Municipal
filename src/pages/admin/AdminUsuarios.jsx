@@ -39,6 +39,12 @@ import {
   getUserOverrides,
   saveUserOverrides
 } from '../../services/permissions';
+import {
+  getUsuarios,
+  crearUsuario,
+  actualizarUsuario,
+  eliminarUsuario
+} from '../../services/api';
 import './AdminUsuarios.css';
 
 export const DEPENDENCIAS_MUNICIPALES = [
@@ -53,12 +59,17 @@ export const DEPENDENCIAS_MUNICIPALES = [
 ];
 
 const INITIAL_USERS = [
-  { id: 1, nombre: 'Lic. Roberto Gómez', usuario: 'admin', rol: 'admin', dependencia: 'Dirección General DIF', activo: true, password: 'admin' },
-  { id: 2, nombre: 'Ing. Laura Méndez', usuario: 'supervisor', rol: 'supervisor', dependencia: 'Dirección de Asistencia Social', activo: true, password: 'supervisor' },
-  { id: 3, nombre: 'Miguel Ángel Torres', usuario: 'capturista', rol: 'capturista', dependencia: 'Coordinación de Salud y CEMTRI', activo: true, password: 'capturista' },
+  { id: 4, nombre: 'Administrador General DIF', usuario: 'prueba@gmail.com.mx', rol: 'admin', dependencia: 'Dirección General DIF', activo: true, password: '123456789' },
+  { id: 5, nombre: 'Capturista DIF Municipal', usuario: 'difmunicipal@gmail.com.mx', rol: 'capturista', dependencia: 'Dirección de Asistencia Social', activo: true, password: 'dif123' },
+  { id: 6, nombre: 'Supervisor General DIF', usuario: 'supervisor@gmail.com.mx', rol: 'supervisor', dependencia: 'Dirección de Asistencia Social', activo: true, password: 'supervisor123' },
 ];
 
 const STORAGE_USERS_KEY = 'padrones_usuarios_list';
+const FAKE_DEMO_USERS = new Set(['admin', 'supervisor', 'capturista', 'consultor']);
+
+function normalizeUsername(u) {
+  return String(u || '').trim().replace(/\s+@\s*/g, '@').toLowerCase();
+}
 
 function AdminUsuarios() {
   // ── Pestaña Activa ('usuarios' | 'permisos') ──
@@ -71,7 +82,42 @@ function AdminUsuarios() {
       if (stored) {
         const parsed = JSON.parse(stored);
         if (Array.isArray(parsed)) {
-          return parsed.filter((u) => u.rol !== 'consultor');
+          const cleaned = parsed
+            .filter((u) => u.rol !== 'consultor' && !FAKE_DEMO_USERS.has(normalizeUsername(u.usuario)))
+            .map((u) => {
+              const normUser = normalizeUsername(u.usuario);
+              if (normUser === 'supervisor@gmail.com.mx') {
+                return {
+                  ...u,
+                  usuario: 'supervisor@gmail.com.mx',
+                  nombre: (!u.nombre || u.nombre.includes('@')) ? 'Supervisor General DIF' : u.nombre,
+                  rol: 'supervisor',
+                  dependencia: u.dependencia || 'Dirección de Asistencia Social',
+                };
+              }
+              return { ...u, usuario: normUser || u.usuario };
+            });
+
+          // Eliminar duplicados por usuario normalizado
+          const uniqueMap = new Map();
+          cleaned.forEach((u) => {
+            const key = normalizeUsername(u.usuario);
+            if (key && !uniqueMap.has(key)) {
+              uniqueMap.set(key, u);
+            }
+          });
+          const deduped = Array.from(uniqueMap.values());
+
+          if (!deduped.some((u) => normalizeUsername(u.usuario) === 'prueba@gmail.com.mx')) {
+            deduped.unshift(INITIAL_USERS[0]);
+          }
+          if (!deduped.some((u) => normalizeUsername(u.usuario) === 'difmunicipal@gmail.com.mx')) {
+            deduped.splice(1, 0, INITIAL_USERS[1]);
+          }
+          if (!deduped.some((u) => normalizeUsername(u.usuario) === 'supervisor@gmail.com.mx')) {
+            deduped.splice(2, 0, INITIAL_USERS[2]);
+          }
+          return deduped;
         }
       }
     } catch {
@@ -79,6 +125,78 @@ function AdminUsuarios() {
     }
     return INITIAL_USERS;
   });
+
+  // Sincronizar con la Base de Datos del Backend (/api/usuarios) al abrir la vista
+  useEffect(() => {
+    let mounted = true;
+    getUsuarios()
+      .then((res) => {
+        if (!mounted) return;
+        const dbList = Array.isArray(res) ? res : (res?.data || []);
+        if (!Array.isArray(dbList) || dbList.length === 0) return;
+
+        setUsuarios((prev) => {
+          const mergedMap = new Map();
+          prev.forEach((u) => {
+            mergedMap.set(normalizeUsername(u.usuario), u);
+          });
+
+          dbList.forEach((dbU) => {
+            const rawUser = dbU.usuario || dbU.username || '';
+            const normUser = normalizeUsername(rawUser);
+            if (!normUser) return;
+            // Omitir cuentas demo genéricas sin correo si ya están las cuentas reales con correo
+            if (['admin', 'capturista', 'supervisor'].includes(normUser) && mergedMap.size >= 3 && !mergedMap.has(normUser)) {
+              return;
+            }
+            const existing = mergedMap.get(normUser);
+            if (existing) {
+              mergedMap.set(normUser, {
+                ...existing,
+                id: dbU.id || existing.id,
+                usuario: normUser,
+                rol: (dbU.rol || existing.rol || 'capturista').toLowerCase(),
+                activo: dbU.activo !== undefined ? Boolean(dbU.activo) : existing.activo,
+                nombre: (dbU.nombre && !dbU.nombre.includes('@')) ? dbU.nombre : existing.nombre,
+                dependencia: dbU.dependencia || existing.dependencia,
+              });
+            } else {
+              mergedMap.set(normUser, {
+                id: dbU.id || Date.now(),
+                nombre: (dbU.nombre && !dbU.nombre.includes('@'))
+                  ? dbU.nombre
+                  : normUser === 'supervisor@gmail.com.mx'
+                    ? 'Supervisor General DIF'
+                    : normUser === 'prueba@gmail.com.mx'
+                      ? 'Administrador General DIF'
+                      : normUser === 'difmunicipal@gmail.com.mx'
+                        ? 'Capturista DIF Municipal'
+                        : rawUser,
+                usuario: normUser,
+                rol: (dbU.rol || 'capturista').toLowerCase(),
+                dependencia:
+                  dbU.dependencia ||
+                  (dbU.rol === 'admin'
+                    ? 'Dirección General DIF'
+                    : 'Dirección de Asistencia Social'),
+                activo: dbU.activo !== false,
+                fecha_registro: dbU.creado_en
+                  ? new Date(dbU.creado_en).toLocaleDateString('es-MX')
+                  : new Date().toLocaleDateString('es-MX'),
+              });
+            }
+          });
+
+          return Array.from(mergedMap.values());
+        });
+      })
+      .catch(() => {
+        // Si el backend está desconectado, se mantiene la lista local sincronizada
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Guardar usuarios en localStorage cuando cambien
   useEffect(() => {
@@ -156,23 +274,24 @@ function AdminUsuarios() {
   }, [rolePermissions]);
 
   // ── MANEJADORES DE USUARIOS ──
-  const handleCreateSubmit = (e) => {
+  const handleCreateSubmit = async (e) => {
     e.preventDefault();
     if (!newUser.nombre.trim() || !newUser.usuario.trim() || !newUser.password.trim()) {
       alert('Por favor complete todos los campos obligatorios.');
       return;
     }
 
-    const existe = usuarios.some((u) => u.usuario.toLowerCase() === newUser.usuario.toLowerCase());
+    const cleanUsuario = normalizeUsername(newUser.usuario);
+    const existe = usuarios.some((u) => normalizeUsername(u.usuario) === cleanUsuario);
     if (existe) {
-      alert(`El nombre de usuario "${newUser.usuario}" ya está en uso.`);
+      alert(`El nombre de usuario "${cleanUsuario}" ya está en uso.`);
       return;
     }
 
     const creado = {
       id: Date.now(),
       nombre: newUser.nombre.trim(),
-      usuario: newUser.usuario.trim().toLowerCase(),
+      usuario: cleanUsuario,
       rol: newUser.rol,
       dependencia: newUser.dependencia || 'Dirección de Asistencia Social',
       activo: newUser.activo,
@@ -180,31 +299,44 @@ function AdminUsuarios() {
       fecha_registro: new Date().toLocaleDateString('es-MX'),
     };
 
+    try {
+      const resDb = await crearUsuario(creado);
+      if (resDb?.data?.id) {
+        creado.id = resDb.data.id;
+      }
+    } catch (_) {
+      // Continuar con guardado local si falla red
+    }
+
     setUsuarios([...usuarios, creado]);
     setShowCreateModal(false);
     setNewUser({ nombre: '', usuario: '', password: '', rol: 'capturista', dependencia: 'Dirección de Asistencia Social', activo: true });
     showToast(`Usuario "${creado.nombre}" registrado exitosamente con rol ${creado.rol}.`);
   };
 
-  const handleEditSubmit = (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
     if (!editingUser.nombre.trim() || !editingUser.usuario.trim()) {
       alert('Por favor complete el nombre y usuario.');
       return;
     }
 
+    const cleanUsuario = normalizeUsername(editingUser.usuario);
+    const payloadUpdate = {
+      ...editingUser,
+      usuario: cleanUsuario,
+    };
+    if (editUserNewPassword.trim()) {
+      payloadUpdate.password = editUserNewPassword.trim();
+      payloadUpdate.fecha_cambio_clave = new Date().toLocaleDateString('es-MX');
+    }
+
+    try {
+      await actualizarUsuario(editingUser.id, payloadUpdate);
+    } catch (_) {}
+
     setUsuarios(
-      usuarios.map((u) => {
-        if (u.id === editingUser.id) {
-          const updated = { ...editingUser };
-          if (editUserNewPassword.trim()) {
-            updated.password = editUserNewPassword.trim();
-            updated.fecha_cambio_clave = new Date().toLocaleDateString('es-MX');
-          }
-          return updated;
-        }
-        return u;
-      })
+      usuarios.map((u) => (u.id === editingUser.id ? payloadUpdate : u))
     );
     const updatedName = editingUser.nombre;
     setEditingUser(null);
@@ -213,17 +345,23 @@ function AdminUsuarios() {
     showToast(`Usuario "${updatedName}" actualizado correctamente.`);
   };
 
-  const handleDeleteUser = (id, nombre) => {
+  const handleDeleteUser = async (id, nombre) => {
     if (!window.confirm(`¿Estás seguro de eliminar al usuario ${nombre}? Esta acción no se puede deshacer.`)) {
       return;
     }
+    try {
+      await eliminarUsuario(id);
+    } catch (_) {}
     setUsuarios(usuarios.filter((u) => u.id !== id));
     if (editingUser?.id === id) setEditingUser(null);
     showToast(`Usuario "${nombre}" eliminado del sistema.`);
   };
 
-  const handleToggleUserActive = (user) => {
+  const handleToggleUserActive = async (user) => {
     const nuevoEstado = !user.activo;
+    try {
+      await actualizarUsuario(user.id, { ...user, activo: nuevoEstado });
+    } catch (_) {}
     setUsuarios((prev) =>
       prev.map((u) => (u.id === user.id ? { ...u, activo: nuevoEstado } : u))
     );
@@ -263,7 +401,7 @@ function AdminUsuarios() {
     showToast('Contraseña copiada al portapapeles.');
   };
 
-  const handleSavePasswordReset = (e) => {
+  const handleSavePasswordReset = async (e) => {
     e.preventDefault();
     if (!passwordForm.newPassword.trim()) {
       alert('Por favor ingrese la nueva contraseña.');
@@ -277,6 +415,13 @@ function AdminUsuarios() {
       alert('La confirmación de la contraseña no coincide.');
       return;
     }
+
+    try {
+      await actualizarUsuario(passwordModalUser.id, {
+        ...passwordModalUser,
+        password: passwordForm.newPassword.trim(),
+      });
+    } catch (_) {}
 
     setUsuarios((prev) =>
       prev.map((u) =>
@@ -354,13 +499,13 @@ function AdminUsuarios() {
   // ── MANEJADOR DE EXCEPCIONES INDIVIDUALES POR USUARIO ──
   const handleOpenUserOverrides = (user) => {
     setUserOverridesModal(user);
-    const existing = getUserOverrides(user.id);
+    const existing = getUserOverrides(user);
     setUserOverridesTemp({ ...existing });
   };
 
   const handleSaveUserOverrides = () => {
     if (!userOverridesModal) return;
-    saveUserOverrides(userOverridesModal.id, userOverridesTemp);
+    saveUserOverrides(userOverridesModal, userOverridesTemp);
     showToast(`Permisos personalizados de "${userOverridesModal.nombre}" actualizados correctamente.`);
     setUserOverridesModal(null);
   };

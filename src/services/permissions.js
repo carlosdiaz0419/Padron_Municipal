@@ -86,10 +86,10 @@ export const DEFAULT_ROLE_PERMISSIONS = {
   },
   supervisor: {
     'beneficiarios.ver': true,
-    'beneficiarios.crear': false,
-    'beneficiarios.editar': false,
-    'beneficiarios.eliminar': false,
-    'beneficiarios.solicitudes': false,
+    'beneficiarios.crear': true,
+    'beneficiarios.editar': true,
+    'beneficiarios.eliminar': true,
+    'beneficiarios.solicitudes': true,
     'validacion.ver': true,
     'validacion.aprobar': true,
     'validacion.rechazar': true,
@@ -117,7 +117,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'catalogos.crear': false,
     'catalogos.editar': false,
     'reportes.ver': false,
-    'reportes.exportar_general': false,
+    'reportes.exportar_general': true,
     'reportes.exportar_supervision': false,
     'admin.usuarios_ver': false,
     'admin.usuarios_gestionar': false,
@@ -125,6 +125,59 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     'admin.auditoria_ver': false,
   },
 };
+
+function getAuthHeadersForPerms() {
+  try {
+    const raw = localStorage.getItem('padrones_user');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const token = parsed?.token || parsed?.jwt || parsed?.accessToken;
+      if (token && !String(token).startsWith('local-jwt-')) {
+        return {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        };
+      }
+    }
+  } catch (_) {}
+  return { 'Content-Type': 'application/json' };
+}
+
+function pushPermissionsToBackend() {
+  try {
+    const rolePermissions = getRolePermissions();
+    const rawOverrides = localStorage.getItem(STORAGE_KEY_USER_OVERRIDES);
+    const userOverrides = rawOverrides ? JSON.parse(rawOverrides) : {};
+    fetch('/api/usuarios/permisos', {
+      method: 'PUT',
+      headers: getAuthHeadersForPerms(),
+      body: JSON.stringify({ rolePermissions, userOverrides }),
+    }).catch(() => {});
+  } catch (_) {}
+}
+
+export async function syncPermissionsFromBackend() {
+  try {
+    const res = await fetch('/api/usuarios/permisos', {
+      method: 'GET',
+      headers: getAuthHeadersForPerms(),
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    let changed = false;
+    if (data?.rolePermissions && typeof data.rolePermissions === 'object') {
+      localStorage.setItem(STORAGE_KEY_PERMISSIONS, JSON.stringify(data.rolePermissions));
+      changed = true;
+    }
+    if (data?.userOverrides && typeof data.userOverrides === 'object') {
+      localStorage.setItem(STORAGE_KEY_USER_OVERRIDES, JSON.stringify(data.userOverrides));
+      changed = true;
+    }
+    if (changed) {
+      window.dispatchEvent(new Event('padrones_permissions_updated'));
+    }
+  } catch (_) {}
+}
 
 /**
  * Obtener la matriz actual de permisos por rol.
@@ -147,11 +200,12 @@ export function getRolePermissions() {
 }
 
 /**
- * Guardar la matriz de permisos por rol en localStorage.
+ * Guardar la matriz de permisos por rol en localStorage y en el backend.
  */
 export function saveRolePermissions(matrix) {
   try {
     localStorage.setItem(STORAGE_KEY_PERMISSIONS, JSON.stringify(matrix));
+    pushPermissionsToBackend();
     window.dispatchEvent(new Event('padrones_permissions_updated'));
     return true;
   } catch (err) {
@@ -166,6 +220,12 @@ export function saveRolePermissions(matrix) {
 export function resetRolePermissions() {
   try {
     localStorage.removeItem(STORAGE_KEY_PERMISSIONS);
+    localStorage.removeItem(STORAGE_KEY_USER_OVERRIDES);
+    fetch('/api/usuarios/permisos', {
+      method: 'PUT',
+      headers: getAuthHeadersForPerms(),
+      body: JSON.stringify({ rolePermissions: DEFAULT_ROLE_PERMISSIONS, userOverrides: {} }),
+    }).catch(() => {});
     window.dispatchEvent(new Event('padrones_permissions_updated'));
     return JSON.parse(JSON.stringify(DEFAULT_ROLE_PERMISSIONS));
   } catch (err) {
@@ -174,15 +234,31 @@ export function resetRolePermissions() {
   }
 }
 
+function normalizeUserKey(u) {
+  return String(u || '').trim().replace(/\s+@\s*/g, '@').toLowerCase();
+}
+
 /**
  * Obtener excepciones/permisos específicos asignados a un usuario individual.
+ * Acepta tanto un ID como un objeto usuario ({ id, usuario, username }).
  */
-export function getUserOverrides(userId) {
+export function getUserOverrides(userOrId) {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_USER_OVERRIDES);
     if (raw) {
       const all = JSON.parse(raw);
-      return all[String(userId)] || {};
+      if (userOrId && typeof userOrId === 'object') {
+        const uname = normalizeUserKey(userOrId.usuario || userOrId.username);
+        if (uname && all[uname] && Object.keys(all[uname]).length > 0) {
+          return all[uname];
+        }
+        if (userOrId.id !== undefined && all[String(userOrId.id)]) {
+          return all[String(userOrId.id)];
+        }
+        return {};
+      }
+      const key = String(userOrId);
+      return all[key] || all[normalizeUserKey(key)] || {};
     }
   } catch {
     // Retornar vacío si falla
@@ -191,14 +267,25 @@ export function getUserOverrides(userId) {
 }
 
 /**
- * Guardar excepciones/permisos específicos para un usuario individual.
+ * Guardar excepciones/permisos específicos para un usuario individual (por ID y por username).
  */
-export function saveUserOverrides(userId, overrides) {
+export function saveUserOverrides(userOrId, overrides) {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_USER_OVERRIDES);
     const all = raw ? JSON.parse(raw) : {};
-    all[String(userId)] = overrides;
+    if (userOrId && typeof userOrId === 'object') {
+      if (userOrId.id !== undefined) {
+        all[String(userOrId.id)] = overrides;
+      }
+      const uname = normalizeUserKey(userOrId.usuario || userOrId.username);
+      if (uname) {
+        all[uname] = overrides;
+      }
+    } else {
+      all[String(userOrId)] = overrides;
+    }
     localStorage.setItem(STORAGE_KEY_USER_OVERRIDES, JSON.stringify(all));
+    pushPermissionsToBackend();
     window.dispatchEvent(new Event('padrones_permissions_updated'));
     return true;
   } catch (err) {
@@ -209,7 +296,7 @@ export function saveUserOverrides(userId, overrides) {
 
 /**
  * Verificar si un usuario o rol tiene habilitado un permiso específico.
- * @param {{ id?: string|number, rol?: string }} user
+ * @param {{ id?: string|number, usuario?: string, username?: string, rol?: string }} user
  * @param {string} permissionId (ej. 'beneficiarios.eliminar')
  */
 export function checkPermission(user, permissionId) {
@@ -217,12 +304,10 @@ export function checkPermission(user, permissionId) {
   const role = (user.rol || '').toLowerCase();
   if (role === 'admin') return true; // Administrador siempre tiene acceso total
 
-  // 1. Revisar si el usuario tiene una excepción individual configurada
-  if (user.id) {
-    const overrides = getUserOverrides(user.id);
-    if (typeof overrides[permissionId] === 'boolean') {
-      return overrides[permissionId];
-    }
+  // 1. Revisar si el usuario tiene una excepción individual configurada (por username o ID)
+  const overrides = getUserOverrides(user);
+  if (overrides && typeof overrides[permissionId] === 'boolean') {
+    return overrides[permissionId];
   }
 
   // 2. Revisar la matriz de permisos de su rol

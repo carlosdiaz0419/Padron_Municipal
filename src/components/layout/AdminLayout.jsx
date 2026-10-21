@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { 
   Building2, 
   LayoutDashboard, 
+  ClipboardList,
   Users, 
   BookOpen, 
   BarChart3, 
@@ -14,23 +15,27 @@ import {
   Eye,
   EyeOff,
   CheckCircle2,
-  Lock
+  Lock,
+  Menu
 } from 'lucide-react';
 import './Layout.css';
 
 /**
- * AdminLayout — Sidebar y contenedor para el Administrador con iconos Lucide y tema blanco.
+ * AdminLayout — Sidebar y contenedor para el Administrador con soporte responsivo móvil/tablet/desktop.
  */
 function AdminLayout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showSelfPwdModal, setShowSelfPwdModal] = useState(false);
   const [currentPwd, setCurrentPwd] = useState('');
   const [newPwd, setNewPwd] = useState('');
   const [confirmPwd, setConfirmPwd] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [selfPwdToast, setSelfPwdToast] = useState(null);
+
+  const closeMobileMenu = () => setMobileMenuOpen(false);
 
   const handleSelfPasswordSubmit = (e) => {
     e.preventDefault();
@@ -58,13 +63,41 @@ function AdminLayout() {
   };
 
   const handleLogout = () => {
+    closeMobileMenu();
     logout();
     navigate('/login');
   };
 
   return (
     <div className="layout layout--admin">
-      <aside className="sidebar sidebar--admin">
+      {/* ── BARRA SUPERIOR MÓVIL / TABLET ── */}
+      <header className="mobile-topbar mobile-topbar--admin">
+        <div className="mobile-topbar__brand">
+          <div className="sidebar__logo-badge">
+            <Building2 size={20} />
+          </div>
+          <div className="sidebar__header-info">
+            <h2>Padrón Social</h2>
+            <span className="sidebar__rol-pill">Administrador</span>
+          </div>
+        </div>
+        <button
+          type="button"
+          className="mobile-topbar__toggle"
+          onClick={() => setMobileMenuOpen((prev) => !prev)}
+          aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+          aria-expanded={mobileMenuOpen}
+        >
+          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </header>
+
+      {/* ── OVERLAY MÓVIL ── */}
+      {mobileMenuOpen && (
+        <div className="sidebar-backdrop" onClick={closeMobileMenu} aria-hidden="true" />
+      )}
+
+      <aside className={`sidebar sidebar--admin ${mobileMenuOpen ? 'sidebar--open' : ''}`}>
         <div className="sidebar__header">
           <div className="sidebar__logo-badge">
             <Building2 size={22} />
@@ -73,26 +106,38 @@ function AdminLayout() {
             <h2>Padrón Social</h2>
             <span className="sidebar__rol-pill">Administrador</span>
           </div>
+          <button
+            type="button"
+            className="sidebar__close-btn"
+            onClick={closeMobileMenu}
+            aria-label="Cerrar menú"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         <nav className="sidebar__nav">
-          <NavLink to="/admin" end>
+          <NavLink to="/admin" end onClick={closeMobileMenu}>
             <span className="sidebar__nav-icon"><LayoutDashboard size={18} /></span>
             <span>Dashboard</span>
           </NavLink>
-          <NavLink to="/admin/usuarios">
+          <NavLink to="/admin/beneficiarios" onClick={closeMobileMenu}>
+            <span className="sidebar__nav-icon"><ClipboardList size={18} /></span>
+            <span>Padrón de Beneficiarios</span>
+          </NavLink>
+          <NavLink to="/admin/usuarios" onClick={closeMobileMenu}>
             <span className="sidebar__nav-icon"><Users size={18} /></span>
             <span>Usuarios y Permisos</span>
           </NavLink>
-          <NavLink to="/admin/catalogos">
+          <NavLink to="/admin/catalogos" onClick={closeMobileMenu}>
             <span className="sidebar__nav-icon"><BookOpen size={18} /></span>
             <span>Catálogos</span>
           </NavLink>
-          <NavLink to="/admin/reportes">
+          <NavLink to="/admin/reportes" onClick={closeMobileMenu}>
             <span className="sidebar__nav-icon"><BarChart3 size={18} /></span>
             <span>Reportes</span>
           </NavLink>
-          <NavLink to="/admin/auditoria">
+          <NavLink to="/admin/auditoria" onClick={closeMobileMenu}>
             <span className="sidebar__nav-icon"><ShieldCheck size={18} /></span>
             <span>Auditoría</span>
           </NavLink>
@@ -113,7 +158,7 @@ function AdminLayout() {
           </div>
           <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
             <button 
-              onClick={() => setShowSelfPwdModal(true)} 
+              onClick={() => { closeMobileMenu(); setShowSelfPwdModal(true); }} 
               className="btn-logout" 
               title="Cambiar mi contraseña de Administrador"
               style={{ color: '#2563eb' }}

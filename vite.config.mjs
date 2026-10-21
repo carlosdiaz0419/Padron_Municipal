@@ -10,28 +10,16 @@ export default defineConfig({
     'process.env': {},
   },
   server: {
-    port: 3000,
+    port: 5173,
     open: true,
     proxy: {
       '/api': {
-        target: 'https://backend-beneficiarios-production.up.railway.app',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
-        configure: (proxy, options) => {
-          proxy.on('proxyReq', (proxyReq, req) => {
-            console.log(`[Vite Proxy] Reenviando petición ${req.method} ${req.url} -> ${options.target}${req.url}`);
-          });
-          proxy.on('proxyRes', (proxyRes, req) => {
-            proxyRes.headers['x-proxied-to'] = options.target;
-            console.log(`[Vite Proxy] Respuesta recibida de Railway para ${req.url}: HTTP ${proxyRes.statusCode}`);
-          });
-          proxy.on('error', (err, req) => {
-            console.error(`[Vite Proxy Error] Error al conectar con Railway:`, err.message);
-          });
-        },
       },
       '/health': {
-        target: 'https://backend-beneficiarios-production.up.railway.app',
+        target: 'http://localhost:3000',
         changeOrigin: true,
         secure: false,
       },
