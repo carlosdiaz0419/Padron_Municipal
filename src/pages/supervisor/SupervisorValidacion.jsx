@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import BtnBackDashboard from '../../components/common/BtnBackDashboard';
 import { 
   Check, 
   X, 
@@ -17,7 +19,8 @@ import {
   Calendar,
   Filter,
   Building2,
-  Printer
+  Printer,
+  ArrowLeft
 } from 'lucide-react';
 import { getBeneficiarios, actualizarBeneficiario } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -36,6 +39,9 @@ function SupervisorValidacion() {
 
   // Modales
   const [inspectModal, setInspectModal] = useState(null); // Expediente en revisión
+  const [approveModal, setApproveModal] = useState(null); // Expediente a aprobar con confirmación explícita
+  const [approveNotes, setApproveNotes] = useState('');
+  const [cumpleRequisitos, setCumpleRequisitos] = useState(true);
   const [rejectModal, setRejectModal] = useState(null);   // Expediente a rechazar
   const [rejectReason, setRejectReason] = useState('Documentación incompleta o ilegible');
   const [rejectNotes, setRejectNotes] = useState('');
@@ -71,21 +77,51 @@ function SupervisorValidacion() {
     cargarDatos();
   }, []);
 
-  // Acción: Aprobar
-  const handleAprobar = async (expediente) => {
+  // Abrir modal de aprobación (no aprueba en automático)
+  const handleAbrirAprobacion = (expediente) => {
+    setApproveModal(expediente);
+    setApproveNotes('');
+    setCumpleRequisitos(true);
+  };
+
+  // Confirmar y dictaminar la aprobación formalmente
+  const handleConfirmarAprobacion = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!approveModal) return;
+    if (!cumpleRequisitos) {
+      showToast('Debes certificar el cumplimiento de requisitos normativos para autorizar.', 'warning');
+      return;
+    }
+
     try {
-      await actualizarBeneficiario(expediente.id, { estatus: 'activo' });
+      const dictamenFinal = approveNotes.trim() || 'Aprobado conforme a la norma oficial DIF 2027';
+      const fechaHoy = new Date().toLocaleDateString('es-MX');
+
+      await actualizarBeneficiario(approveModal.id, { 
+        estatus: 'activo',
+        dictamen: dictamenFinal,
+        fecha_validacion: fechaHoy
+      });
+
       setExpedientes((prev) =>
         prev.map((item) =>
-          item.id === expediente.id
-            ? { ...item, estatus: 'activo', fecha_validacion: new Date().toLocaleDateString('es-MX') }
+          item.id === approveModal.id
+            ? { 
+                ...item, 
+                estatus: 'activo', 
+                dictamen: dictamenFinal,
+                fecha_validacion: fechaHoy 
+              }
             : item
         )
       );
-      if (inspectModal?.id === expediente.id) {
+
+      if (inspectModal?.id === approveModal.id) {
         setInspectModal(null);
       }
-      showToast(`¡Expediente ${expediente.folio} (${expediente.nombre || expediente.nombre_completo}) APROBADO exitosamente! Ha pasado a estatus ACTIVO.`);
+
+      showToast(`¡Expediente ${approveModal.folio} (${approveModal.nombre || approveModal.nombre_completo}) APROBADO y autorizado! Ha pasado a estatus ACTIVO.`);
+      setApproveModal(null);
     } catch (err) {
       showToast(`Error al aprobar: ${err.message}`, 'error');
     }
@@ -189,14 +225,21 @@ function SupervisorValidacion() {
         </div>
       )}
 
+      {/* Botón Volver al Dashboard en la parte superior izquierda */}
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+        <BtnBackDashboard to="/supervisor" />
+      </div>
+
       {/* ── ENCABEZADO ── */}
-      <div className="page-header" style={{ marginBottom: '1.5rem' }}>
-        <h1 className="page-title">
-          <span>Validación de Expedientes</span>
-        </h1>
-        <p className="page-subtitle">
-          Revisa los beneficiarios capturados que requieren autorización para pasar a estatus Activo y recibir apoyos.
-        </p>
+      <div className="page-header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 className="page-title">
+            <span>Validación de Expedientes</span>
+          </h1>
+          <p className="page-subtitle">
+            Revisa los beneficiarios capturados que requieren autorización para pasar a estatus Activo y recibir apoyos.
+          </p>
+        </div>
       </div>
 
       {/* ── TARJETAS DE INDICADORES RÁPIDOS ── */}
@@ -469,9 +512,9 @@ function SupervisorValidacion() {
                           {/* Botón Aprobar */}
                           {canAprobar && (
                             <button
-                              onClick={() => handleAprobar(p)}
+                              onClick={() => handleAbrirAprobacion(p)}
                               className="btn-sm"
-                              title="Aprobar expediente y dar alta activa"
+                              title="Aprobar expediente con confirmación y dictamen"
                               style={{ background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0', fontWeight: 600 }}
                             >
                               <Check size={14} /> Aprobar
@@ -493,9 +536,9 @@ function SupervisorValidacion() {
                       ) : p.estatus === 'rechazado' ? (
                         canAprobar && (
                           <button
-                            onClick={() => handleAprobar(p)}
+                            onClick={() => handleAbrirAprobacion(p)}
                             className="btn-sm"
-                            title="Reactivar y aprobar expediente"
+                            title="Reconsiderar y aprobar expediente"
                             style={{ background: '#ecfdf5', color: '#059669', borderColor: '#a7f3d0' }}
                           >
                             <Check size={13} /> Reconsiderar
@@ -716,7 +759,7 @@ function SupervisorValidacion() {
                 {canAprobar && (
                   <button
                     onClick={() => {
-                      handleAprobar(inspectModal);
+                      handleAbrirAprobacion(inspectModal);
                     }}
                     className="btn-primary"
                     style={{ background: '#059669', borderColor: '#059669' }}
@@ -726,6 +769,136 @@ function SupervisorValidacion() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── MODAL: CONFIRMAR APROBACIÓN CON DICTAMEN (NO APRUEBA SOLO) ── */}
+      {approveModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.65)',
+          backdropFilter: 'blur(4px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10001,
+          padding: '1rem'
+        }}>
+          <div style={{
+            background: '#ffffff',
+            borderRadius: '16px',
+            maxWidth: '540px',
+            width: '100%',
+            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+            border: '1px solid #bbf7d0',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              padding: '1.25rem 1.5rem',
+              borderBottom: '1px solid #dcfce7',
+              background: '#f0fdf4',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', color: '#166534' }}>
+                <CheckCircle2 size={22} color="#16a34a" />
+                <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#14532d' }}>
+                  Aprobar Expediente — {approveModal.folio}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setApproveModal(null)}
+                style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmarAprobacion} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+              <div style={{ background: '#f8fafc', padding: '0.9rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.8rem', color: '#64748b', marginBottom: '0.2rem' }}>Beneficiario a autorizar:</div>
+                <div style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>
+                  {approveModal.nombre || approveModal.nombre_completo}
+                </div>
+                <div style={{ fontSize: '0.82rem', color: '#475569', marginTop: '0.25rem', display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                  <span><strong>CURP:</strong> <code style={{ fontFamily: 'monospace' }}>{approveModal.curp}</code></span>
+                  <span><strong>Ayuda:</strong> {approveModal.programa || approveModal.tipo_ayuda_solicitada || 'Apoyo DIF'}</span>
+                </div>
+              </div>
+
+              <div style={{ background: '#fffbeb', border: '1px solid #fef3c7', padding: '0.85rem 1rem', borderRadius: '10px' }}>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem', cursor: 'pointer', fontSize: '0.85rem', color: '#92400e', lineHeight: 1.45, fontWeight: 500 }}>
+                  <input
+                    type="checkbox"
+                    checked={cumpleRequisitos}
+                    onChange={(e) => setCumpleRequisitos(e.target.checked)}
+                    style={{ marginTop: '0.2rem', cursor: 'pointer', accentColor: '#16a34a', width: '16px', height: '16px' }}
+                  />
+                  <span>
+                    Certifico que he revisado el expediente digital y los documentos probatorios. El beneficiario cumple con los requisitos normativos para pasar a estatus <strong>ACTIVO</strong>.
+                  </span>
+                </label>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '0.4rem' }}>
+                  Observaciones o Dictamen del Supervisor (Opcional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={approveNotes}
+                  onChange={(e) => setApproveNotes(e.target.value)}
+                  placeholder="Ej: Expediente verificado con dictamen médico favorable y estudio socioeconómico aprobado..."
+                  style={{
+                    width: '100%',
+                    padding: '0.55rem 0.75rem',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    fontSize: '0.88rem',
+                    outline: 'none',
+                    resize: 'vertical',
+                    fontFamily: 'inherit'
+                  }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.65rem', marginTop: '0.4rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setApproveModal(null)}
+                  className="btn-secondary"
+                  style={{ padding: '0.55rem 1.1rem', cursor: 'pointer' }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={!cumpleRequisitos}
+                  className="btn-primary"
+                  style={{
+                    background: cumpleRequisitos ? '#059669' : '#9ca3af',
+                    borderColor: cumpleRequisitos ? '#059669' : '#9ca3af',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    padding: '0.55rem 1.4rem',
+                    cursor: cumpleRequisitos ? 'pointer' : 'not-allowed',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}
+                >
+                  <CheckCircle2 size={16} />
+                  <span>Confirmar y Autorizar</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

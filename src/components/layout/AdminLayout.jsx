@@ -81,15 +81,24 @@ function AdminLayout() {
             <span className="sidebar__rol-pill">Administrador</span>
           </div>
         </div>
-        <button
-          type="button"
-          className="mobile-topbar__toggle"
-          onClick={() => setMobileMenuOpen((prev) => !prev)}
-          aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
-          aria-expanded={mobileMenuOpen}
-        >
-          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button
+            onClick={handleLogout}
+            className="btn-logout"
+            title="Cerrar Sesión"
+          >
+            <LogOut size={16} />
+          </button>
+          <button
+            type="button"
+            className="mobile-topbar__toggle"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </header>
 
       {/* ── OVERLAY MÓVIL ── */}
@@ -114,6 +123,35 @@ function AdminLayout() {
           >
             <X size={20} />
           </button>
+        </div>
+
+        {/* ── PERFIL Y BOTÓN CERRAR SESIÓN ARRIBA EN EL MENÚ ── */}
+        <div className="sidebar__user-top">
+          <div className="sidebar__user-profile">
+            <div className="sidebar__avatar">
+              {user?.nombre ? user.nombre.charAt(0).toUpperCase() : 'A'}
+            </div>
+            <div className="sidebar__user-details">
+              <span className="sidebar__user-name" title={user?.nombre}>{user?.nombre || 'Administrador'}</span>
+              <span className="sidebar__user-role">Admin</span>
+              <span className="sidebar__user-dependencia" title={user?.dependencia || 'Dirección General DIF'}>
+                <Building2 size={10} style={{ flexShrink: 0 }} /> {user?.dependencia || 'Dirección General DIF'}
+              </span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+            <button 
+              onClick={() => { closeMobileMenu(); setShowSelfPwdModal(true); }} 
+              className="btn-logout" 
+              title="Cambiar mi contraseña de Administrador"
+              style={{ color: '#2563eb' }}
+            >
+              <KeyRound size={16} />
+            </button>
+            <button onClick={handleLogout} className="btn-logout" title="Cerrar Sesión">
+              <LogOut size={16} />
+            </button>
+          </div>
         </div>
 
         <nav className="sidebar__nav">
@@ -142,34 +180,6 @@ function AdminLayout() {
             <span>Auditoría</span>
           </NavLink>
         </nav>
-
-        <div className="sidebar__footer">
-          <div className="sidebar__user-profile">
-            <div className="sidebar__avatar">
-              {user?.nombre ? user.nombre.charAt(0).toUpperCase() : 'A'}
-            </div>
-            <div className="sidebar__user-details">
-              <span className="sidebar__user-name" title={user?.nombre}>{user?.nombre || 'Administrador'}</span>
-              <span className="sidebar__user-role">Admin</span>
-              <span className="sidebar__user-dependencia" title={user?.dependencia || 'Dirección General DIF'}>
-                <Building2 size={10} style={{ flexShrink: 0 }} /> {user?.dependencia || 'Dirección General DIF'}
-              </span>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
-            <button 
-              onClick={() => { closeMobileMenu(); setShowSelfPwdModal(true); }} 
-              className="btn-logout" 
-              title="Cambiar mi contraseña de Administrador"
-              style={{ color: '#2563eb' }}
-            >
-              <KeyRound size={16} />
-            </button>
-            <button onClick={handleLogout} className="btn-logout" title="Cerrar Sesión">
-              <LogOut size={16} />
-            </button>
-          </div>
-        </div>
       </aside>
 
       {/* ── MODAL: CAMBIAR MI PROPIA CONTRASEÑA ── */}

@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { 
   Users, 
-  ClipboardList,
-  BookOpen, 
-  BarChart3, 
   ShieldCheck, 
-  ArrowRight, 
   Sparkles,
   Award,
   Layers,
@@ -138,125 +133,6 @@ function AdminDashboard() {
             <ShieldCheck size={22} />
           </div>
         </div>
-      </div>
-
-      {/* ── SECCIÓN DE MÓDULOS DE ACCIÓN RÁPIDA ── */}
-      <div className="section-heading">
-        <div>
-          <h2 className="section-heading__title">
-            <span>Módulos de Gestión Administrativa</span>
-          </h2>
-          <p className="section-heading__desc">
-            Accede a las herramientas de control y configuración del sistema
-          </p>
-        </div>
-      </div>
-
-      <div className="cards-grid">
-        {/* Módulo 0: Padrón de Beneficiarios */}
-        <Link to="/admin/beneficiarios" className="module-card-link">
-          <div className="module-card module-card--green">
-            <div className="module-card__accent"></div>
-            <div className="module-card__header">
-              <div className="module-card__icon-wrap">
-                <ClipboardList size={24} />
-              </div>
-              <span className="module-card__category">Padrón</span>
-            </div>
-            <h3 className="module-card__title">Padrón de Beneficiarios</h3>
-            <p className="module-card__desc">
-              Consulta el listado oficial de ciudadanos registrados, exporta a Excel/PDF, imprime fichas, agrega ayudas, edita o registra nuevos beneficiarios.
-            </p>
-            <div className="module-card__footer">
-              <span>Ingresar al padrón</span>
-              <span className="module-card__arrow"><ArrowRight size={16} /></span>
-            </div>
-          </div>
-        </Link>
-
-        {/* Módulo 1: Usuarios */}
-        <Link to="/admin/usuarios" className="module-card-link">
-          <div className="module-card module-card--blue">
-            <div className="module-card__accent"></div>
-            <div className="module-card__header">
-              <div className="module-card__icon-wrap">
-                <Users size={24} />
-              </div>
-              <span className="module-card__category">Gestión</span>
-            </div>
-            <h3 className="module-card__title">Usuarios y Accesos</h3>
-            <p className="module-card__desc">
-              Gestiona cuentas de capturistas, supervisores y administradores con permisos por rol.
-            </p>
-            <div className="module-card__footer">
-              <span>Ingresar al módulo</span>
-              <span className="module-card__arrow"><ArrowRight size={16} /></span>
-            </div>
-          </div>
-        </Link>
-
-        {/* Módulo 2: Catálogos */}
-        <Link to="/admin/catalogos" className="module-card-link">
-          <div className="module-card module-card--purple">
-            <div className="module-card__accent"></div>
-            <div className="module-card__header">
-              <div className="module-card__icon-wrap">
-                <BookOpen size={24} />
-              </div>
-              <span className="module-card__category">Configuración</span>
-            </div>
-            <h3 className="module-card__title">Catálogos del Sistema</h3>
-            <p className="module-card__desc">
-              Administra programas sociales, municipios, localidades, tipos de apoyo y estructuras presupuestales.
-            </p>
-            <div className="module-card__footer">
-              <span>Ingresar al módulo</span>
-              <span className="module-card__arrow"><ArrowRight size={16} /></span>
-            </div>
-          </div>
-        </Link>
-
-        {/* Módulo 3: Métricas y Reportes */}
-        <Link to="/admin/reportes" className="module-card-link">
-          <div className="module-card module-card--green">
-            <div className="module-card__accent"></div>
-            <div className="module-card__header">
-              <div className="module-card__icon-wrap">
-                <BarChart3 size={24} />
-              </div>
-              <span className="module-card__category">Estadísticas</span>
-            </div>
-            <h3 className="module-card__title">Métricas y Reportes</h3>
-            <p className="module-card__desc">
-              Consulta estadísticas en tiempo real, consolidados generales y exportación de padrones en formato Excel.
-            </p>
-            <div className="module-card__footer">
-              <span>Ingresar al módulo</span>
-              <span className="module-card__arrow"><ArrowRight size={16} /></span>
-            </div>
-          </div>
-        </Link>
-
-        {/* Módulo 4: Auditoría */}
-        <Link to="/admin/auditoria" className="module-card-link">
-          <div className="module-card module-card--amber">
-            <div className="module-card__accent"></div>
-            <div className="module-card__header">
-              <div className="module-card__icon-wrap">
-                <ShieldCheck size={24} />
-              </div>
-              <span className="module-card__category">Seguridad</span>
-            </div>
-            <h3 className="module-card__title">Auditoría de Actividad</h3>
-            <p className="module-card__desc">
-              Historial detallado de altas, modificaciones, validaciones y bajas con registro de fecha y usuario responsable.
-            </p>
-            <div className="module-card__footer">
-              <span>Ingresar al módulo</span>
-              <span className="module-card__arrow"><ArrowRight size={16} /></span>
-            </div>
-          </div>
-        </Link>
       </div>
 
       {/* ── BANNER DE AYUDA Y CONSEJO ── */}

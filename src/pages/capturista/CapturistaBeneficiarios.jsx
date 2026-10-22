@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import BtnBackDashboard from '../../components/common/BtnBackDashboard';
 import { 
   getBeneficiarios, 
   eliminarBeneficiario, 
@@ -24,7 +25,8 @@ import {
   Building2,
   Download,
   FileSpreadsheet,
-  Printer
+  Printer,
+  ArrowLeft
 } from 'lucide-react';
 import { exportToExcel, exportToPDF, exportFichaBeneficiarioPDF, COLUMNAS_PADRON_COMPLETO } from '../../utils/exportUtils';
 
@@ -42,7 +44,8 @@ function CapturistaBeneficiarios() {
   const canEditar = hasPermission('beneficiarios.editar');
   const canEliminar = hasPermission('beneficiarios.eliminar');
   const canSolicitudes = hasPermission('beneficiarios.solicitudes');
-  const canExportar = hasPermission('reportes.exportar_general');
+  // En el Padrón de Beneficiarios, los botones de descarga de Excel y PDF siempre están habilitados para todos los usuarios
+  const canExportar = true;
 
   const [beneficiarios, setBeneficiarios] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -149,7 +152,7 @@ function CapturistaBeneficiarios() {
       exportToPDF({
         title: 'Padrón Oficial de Beneficiarios DIF Tuxtla Gutiérrez',
         subtitle: 'Relación Nominal de Expedientes de Asistencia Social',
-        columns: columnasExportar,
+        columns: COLUMNAS_PADRON_COMPLETO,
         data: dataToExport,
         orientation: 'landscape',
         summaryItems: [
@@ -257,6 +260,11 @@ function CapturistaBeneficiarios() {
 
   return (
     <div>
+      {/* Botón Volver al Dashboard en la parte superior izquierda */}
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+        <BtnBackDashboard to={`/${(user?.rol || 'admin').toLowerCase()}`} />
+      </div>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 className="page-title">Padrón de Beneficiarios</h1>
@@ -286,7 +294,7 @@ function CapturistaBeneficiarios() {
               <button
                 onClick={handleExportPDF}
                 className="btn-secondary"
-                title="Exportar padrón en documento PDF oficial"
+                title="Exportar padrón oficial en formato PDF"
                 style={{ 
                   display: 'flex', 
                   alignItems: 'center', 

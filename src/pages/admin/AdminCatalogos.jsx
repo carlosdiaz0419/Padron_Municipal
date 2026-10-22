@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import BtnBackDashboard from '../../components/common/BtnBackDashboard';
 import { 
   Plus, 
   Layers, 
@@ -9,7 +11,8 @@ import {
   Trash2, 
   X, 
   Check, 
-  FolderPlus 
+  FolderPlus,
+  ArrowLeft
 } from 'lucide-react';
 import {
   getCatalogosServicios,
@@ -153,21 +156,28 @@ function AdminCatalogos() {
 
   return (
     <div>
+      {/* Botón Volver al Dashboard en la parte superior izquierda */}
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+        <BtnBackDashboard to="/admin" />
+      </div>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 className="page-title">Catálogos de Servicios</h1>
           <p className="page-subtitle">Catálogo institucional de servicios y apoyos con IDs por categoría (GET /api/catalogos/servicios).</p>
         </div>
-        {canCrear && (
-          <button 
-            onClick={() => setShowCreateModal(true)} 
-            className="btn-primary"
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem', cursor: 'pointer' }}
-          >
-            <Plus size={16} />
-            <span>Nuevo Servicio</span>
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          {canCrear && (
+            <button 
+              onClick={() => setShowCreateModal(true)} 
+              className="btn-primary"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem', cursor: 'pointer' }}
+            >
+              <Plus size={16} />
+              <span>Nuevo Servicio</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {notification && (

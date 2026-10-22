@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { 
-  ClipboardList, 
-  UserPlus, 
-  ArrowRight, 
   Sparkles, 
   Users, 
   FileCheck, 
@@ -97,62 +93,6 @@ function CapturistaDashboard() {
             <Clock size={22} />
           </div>
         </div>
-      </div>
-
-      {/* ── SECCIÓN DE MÓDULOS DE ACCIÓN ── */}
-      <div className="section-heading">
-        <div>
-          <h2 className="section-heading__title">
-            <span>Acciones Principales de Captura</span>
-          </h2>
-          <p className="section-heading__desc">
-            Selecciona si deseas consultar el listado general o registrar a un nuevo beneficiario
-          </p>
-        </div>
-      </div>
-
-      <div className="cards-grid">
-        {/* Módulo 1: Listado de Beneficiarios */}
-        <Link to="/capturista/beneficiarios" className="module-card-link">
-          <div className="module-card module-card--amber">
-            <div className="module-card__accent"></div>
-            <div className="module-card__header">
-              <div className="module-card__icon-wrap">
-                <ClipboardList size={24} />
-              </div>
-              <span className="module-card__category">Padrón</span>
-            </div>
-            <h3 className="module-card__title">Padrón de Beneficiarios</h3>
-            <p className="module-card__desc">
-              Explora la lista completa de ciudadanos, filtra por municipio o programa, verifica el estatus de aprobación y edita registros existentes.
-            </p>
-            <div className="module-card__footer">
-              <span>Ver listado general</span>
-              <span className="module-card__arrow"><ArrowRight size={16} /></span>
-            </div>
-          </div>
-        </Link>
-
-        {/* Módulo 2: Nuevo Registro */}
-        <Link to="/capturista/beneficiarios/nuevo" className="module-card-link">
-          <div className="module-card module-card--green">
-            <div className="module-card__accent"></div>
-            <div className="module-card__header">
-              <div className="module-card__icon-wrap">
-                <UserPlus size={24} />
-              </div>
-              <span className="module-card__category">Nuevo Ingreso</span>
-            </div>
-            <h3 className="module-card__title">Nuevo Registro de Beneficiario</h3>
-            <p className="module-card__desc">
-              Captura los datos personales, socioeconómicos, domicilio y programa social asignado para un nuevo ciudadano con validación automática de CURP.
-            </p>
-            <div className="module-card__footer">
-              <span>Registrar ciudadano</span>
-              <span className="module-card__arrow"><ArrowRight size={16} /></span>
-            </div>
-          </div>
-        </Link>
       </div>
 
       {/* ── BANNER DE RECOMENDACIÓN ── */}

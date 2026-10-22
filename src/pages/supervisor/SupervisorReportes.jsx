@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import BtnBackDashboard from '../../components/common/BtnBackDashboard';
 import { 
   BarChart3, 
   Download, 
@@ -9,7 +11,8 @@ import {
   FileCheck2, 
   Percent,
   ShieldCheck,
-  FileSpreadsheet
+  FileSpreadsheet,
+  ArrowLeft
 } from 'lucide-react';
 import { getBeneficiarios } from '../../services/api';
 import { exportToExcel, exportToPDF } from '../../utils/exportUtils';
@@ -112,12 +115,17 @@ function SupervisorReportes() {
 
   return (
     <div>
+      {/* Botón Volver al Dashboard en la parte superior izquierda */}
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+        <BtnBackDashboard to="/supervisor" />
+      </div>
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 className="page-title">Reportes de Supervisión</h1>
           <p className="page-subtitle">Informes de avance de captura, validación y metas asignadas en Excel y PDF.</p>
         </div>
-        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <button 
             onClick={handleExportSupervisorExcel} 
             disabled={downloading}

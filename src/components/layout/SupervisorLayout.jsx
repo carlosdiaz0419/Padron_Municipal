@@ -33,15 +33,24 @@ function SupervisorLayout() {
             <span className="sidebar__rol-pill">Supervisor</span>
           </div>
         </div>
-        <button
-          type="button"
-          className="mobile-topbar__toggle"
-          onClick={() => setMobileMenuOpen((prev) => !prev)}
-          aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
-          aria-expanded={mobileMenuOpen}
-        >
-          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button
+            onClick={() => { closeMobileMenu(); logout(); navigate('/login'); }}
+            className="btn-logout"
+            title="Cerrar Sesión"
+          >
+            <LogOut size={16} />
+          </button>
+          <button
+            type="button"
+            className="mobile-topbar__toggle"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </header>
 
       {/* ── OVERLAY MÓVIL ── */}
@@ -68,6 +77,25 @@ function SupervisorLayout() {
           </button>
         </div>
 
+        {/* ── PERFIL Y BOTÓN CERRAR SESIÓN ARRIBA EN EL MENÚ ── */}
+        <div className="sidebar__user-top">
+          <div className="sidebar__user-profile">
+            <div className="sidebar__avatar">
+              {user?.nombre ? user.nombre.charAt(0).toUpperCase() : 'S'}
+            </div>
+            <div className="sidebar__user-details">
+              <span className="sidebar__user-name" title={user?.nombre}>{user?.nombre || 'Supervisor'}</span>
+              <span className="sidebar__user-role">Supervisor</span>
+              <span className="sidebar__user-dependencia" title={user?.dependencia || 'Dirección de Asistencia Social'}>
+                <Building2 size={10} style={{ flexShrink: 0 }} /> {user?.dependencia || 'Dirección de Asistencia Social'}
+              </span>
+            </div>
+          </div>
+          <button onClick={() => { closeMobileMenu(); logout(); navigate('/login'); }} className="btn-logout" title="Cerrar Sesión">
+            <LogOut size={16} />
+          </button>
+        </div>
+
         <nav className="sidebar__nav">
           <NavLink to="/supervisor" end onClick={closeMobileMenu}>
             <span className="sidebar__nav-icon"><LayoutDashboard size={18} /></span>
@@ -86,24 +114,6 @@ function SupervisorLayout() {
             <span>Reportes</span>
           </NavLink>
         </nav>
-
-        <div className="sidebar__footer">
-          <div className="sidebar__user-profile">
-            <div className="sidebar__avatar">
-              {user?.nombre ? user.nombre.charAt(0).toUpperCase() : 'S'}
-            </div>
-            <div className="sidebar__user-details">
-              <span className="sidebar__user-name" title={user?.nombre}>{user?.nombre || 'Supervisor'}</span>
-              <span className="sidebar__user-role">Supervisor</span>
-              <span className="sidebar__user-dependencia" title={user?.dependencia || 'Dirección de Asistencia Social'}>
-                <Building2 size={10} style={{ flexShrink: 0 }} /> {user?.dependencia || 'Dirección de Asistencia Social'}
-              </span>
-            </div>
-          </div>
-          <button onClick={() => { closeMobileMenu(); logout(); navigate('/login'); }} className="btn-logout" title="Cerrar Sesión">
-            <LogOut size={16} />
-          </button>
-        </div>
       </aside>
 
       <main className="layout__main">

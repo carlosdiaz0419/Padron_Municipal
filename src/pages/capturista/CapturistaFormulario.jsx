@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import BtnBackDashboard from '../../components/common/BtnBackDashboard';
 import { useAuth } from '../../context/AuthContext';
 import {
   getBeneficiarioById,
@@ -177,6 +178,7 @@ function CapturistaFormulario() {
     try {
       const payload = {
         ...form,
+        estatus: esEdicion ? (form.estatus || 'pendiente') : 'pendiente',
         dependencia: form.dependencia_emisora || 'Dirección de Asistencia Social',
       };
       if (esEdicion) {
@@ -196,6 +198,11 @@ function CapturistaFormulario() {
 
   return (
     <div className="form-container">
+      {/* Botón Volver al Dashboard en la parte superior izquierda */}
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+        <BtnBackDashboard to={`/${(user?.rol || 'admin').toLowerCase()}`} />
+      </div>
+
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 className="page-title">
@@ -205,26 +212,28 @@ function CapturistaFormulario() {
             Sistema para el Desarrollo Integral de la Familia (DIF) — Padrón de Beneficiarios para Otorgar "Ayudas Técnicas" (Anexo 5).
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => exportFichaBeneficiarioPDF(form)}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.45rem',
-            padding: '0.55rem 1rem',
-            borderRadius: '8px',
-            border: '1px solid #bfdbfe',
-            background: '#eff6ff',
-            color: '#1e40af',
-            fontWeight: 700,
-            fontSize: '0.85rem',
-            cursor: 'pointer'
-          }}
-        >
-          <Printer size={16} />
-          <span>Descargar Cédula PDF Completa</span>
-        </button>
+        <div style={{ display: 'flex', gap: '0.6rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={() => exportFichaBeneficiarioPDF(form)}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              padding: '0.55rem 1rem',
+              borderRadius: '8px',
+              border: '1px solid #bfdbfe',
+              background: '#eff6ff',
+              color: '#1e40af',
+              fontWeight: 700,
+              fontSize: '0.85rem',
+              cursor: 'pointer'
+            }}
+          >
+            <Printer size={16} />
+            <span>Descargar Cédula PDF Completa</span>
+          </button>
+        </div>
       </div>
 
       {!canGuardar && (

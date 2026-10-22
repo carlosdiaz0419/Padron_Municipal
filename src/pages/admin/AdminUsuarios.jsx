@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
+import BtnBackDashboard from '../../components/common/BtnBackDashboard';
 import { 
   Plus, 
   Shield, 
@@ -28,7 +30,8 @@ import {
   Copy,
   RefreshCw,
   Download,
-  Check
+  Check,
+  ArrowLeft
 } from 'lucide-react';
 import { 
   MODULOS_SISTEMA, 
@@ -553,6 +556,11 @@ function AdminUsuarios() {
 
   return (
     <div>
+      {/* Botón Volver al Dashboard en la parte superior izquierda */}
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+        <BtnBackDashboard to="/admin" />
+      </div>
+
       {/* ── ENCABEZADO DE PÁGINA ── */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
@@ -565,45 +573,47 @@ function AdminUsuarios() {
           </p>
         </div>
 
-        {activeTab === 'usuarios' ? (
-          <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center' }}>
-            <button
-              onClick={handleExportUsersCSV}
-              className="btn-secondary"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.65rem 1rem', cursor: 'pointer' }}
-              title="Descargar lista de funcionarios en Excel / CSV"
-            >
-              <Download size={16} />
-              <span>Exportar</span>
-            </button>
-            <button 
-              onClick={() => setShowCreateModal(true)} 
-              className="btn-primary"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem', cursor: 'pointer' }}
-            >
-              <UserPlus size={16} />
-              <span>Nuevo Usuario</span>
-            </button>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            <button
-              onClick={handleResetPermissions}
-              className="btn-reset-perm"
-              title="Restablecer todos los permisos a la norma oficial"
-            >
-              <RotateCcw size={15} />
-              <span>Restablecer</span>
-            </button>
-            <button
-              onClick={handleSavePermissions}
-              className={`btn-save-perm ${hasUnsavedChanges ? 'btn-save-perm--unsaved' : ''}`}
-            >
-              <Save size={16} />
-              <span>{hasUnsavedChanges ? 'Guardar Cambios Pendientes' : 'Permisos Guardados'}</span>
-            </button>
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          {activeTab === 'usuarios' ? (
+            <>
+              <button
+                onClick={handleExportUsersCSV}
+                className="btn-secondary"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', padding: '0.65rem 1rem', cursor: 'pointer' }}
+                title="Descargar lista de funcionarios en Excel / CSV"
+              >
+                <Download size={16} />
+                <span>Exportar</span>
+              </button>
+              <button 
+                onClick={() => setShowCreateModal(true)} 
+                className="btn-primary"
+                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.65rem 1.25rem', cursor: 'pointer' }}
+              >
+                <UserPlus size={16} />
+                <span>Nuevo Usuario</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={handleResetPermissions}
+                className="btn-reset-perm"
+                title="Restablecer todos los permisos a la norma oficial"
+              >
+                <RotateCcw size={15} />
+                <span>Restablecer</span>
+              </button>
+              <button
+                onClick={handleSavePermissions}
+                className={`btn-save-perm ${hasUnsavedChanges ? 'btn-save-perm--unsaved' : ''}`}
+              >
+                <Save size={16} />
+                <span>{hasUnsavedChanges ? 'Guardar Cambios Pendientes' : 'Permisos Guardados'}</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* ── NOTIFICACIONES TOAST ── */}

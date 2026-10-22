@@ -216,6 +216,22 @@
   flex-shrink: 0;
 }
 
+/* ── Perfil de Usuario en la Parte Superior del Sidebar ── */
+.sidebar__user-top {
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+}
+
+.mobile-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 /* ── Footer de Usuario ──────────────────────────── */
 .sidebar__footer {
   padding: 1rem 1.15rem;

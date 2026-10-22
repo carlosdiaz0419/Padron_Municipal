@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
 import { 
-  ClipboardList,
-  CheckSquare, 
-  BarChart3, 
-  ArrowRight, 
   Sparkles, 
   CheckCircle2, 
   Clock, 
@@ -100,83 +95,6 @@ function SupervisorDashboard() {
             <TrendingUp size={22} />
           </div>
         </div>
-      </div>
-
-      {/* ── SECCIÓN DE MÓDULOS DE ACCIÓN ── */}
-      <div className="section-heading">
-        <div>
-          <h2 className="section-heading__title">
-            <span>Módulos de Supervisión y Dictaminación</span>
-          </h2>
-          <p className="section-heading__desc">
-            Revisa solicitudes pendientes o genera informes consolidados de avance
-          </p>
-        </div>
-      </div>
-
-      <div className="cards-grid">
-        {/* Módulo 0: Padrón de Beneficiarios */}
-        <Link to="/supervisor/beneficiarios" className="module-card-link">
-          <div className="module-card module-card--amber">
-            <div className="module-card__accent"></div>
-            <div className="module-card__header">
-              <div className="module-card__icon-wrap">
-                <ClipboardList size={24} />
-              </div>
-              <span className="module-card__category">Padrón</span>
-            </div>
-            <h3 className="module-card__title">Padrón de Beneficiarios</h3>
-            <p className="module-card__desc">
-              Consulta el listado oficial de beneficiarios, exporta en Excel o PDF, imprime fichas oficiales, agrega ayudas, edita o registra nuevos expedientes.
-            </p>
-            <div className="module-card__footer">
-              <span>Ver listado general</span>
-              <span className="module-card__arrow"><ArrowRight size={16} /></span>
-            </div>
-          </div>
-        </Link>
-
-        {/* Módulo 1: Validación */}
-        <Link to="/supervisor/validacion" className="module-card-link">
-          <div className="module-card module-card--green">
-            <div className="module-card__accent"></div>
-            <div className="module-card__header">
-              <div className="module-card__icon-wrap">
-                <CheckSquare size={24} />
-              </div>
-              <span className="module-card__category">Revisión</span>
-            </div>
-            <h3 className="module-card__title">Validación de Registros</h3>
-            <p className="module-card__desc">
-              Revisa y aprueba solicitudes en estatus pendiente, verificando documentación oficial, CURP y comprobantes de domicilio.
-            </p>
-            <div className="module-card__footer">
-              <span>Dictaminar solicitudes</span>
-              <span className="module-card__arrow"><ArrowRight size={16} /></span>
-            </div>
-          </div>
-        </Link>
-
-        {/* Módulo 2: Reportes */}
-        <Link to="/supervisor/reportes" className="module-card-link">
-          <div className="module-card module-card--blue">
-            <div className="module-card__accent"></div>
-            <div className="module-card__header">
-              <div className="module-card__icon-wrap">
-                <BarChart3 size={24} />
-              </div>
-              <span className="module-card__category">Estadísticas</span>
-            </div>
-            <h3 className="module-card__title">Reportes de Supervisión</h3>
-            <p className="module-card__desc">
-              Consulta métricas por municipio, capturista asignado, estatus de expedientes y avance de metas por programa social.
-            </p>
-            <div className="module-card__footer">
-              <span>Consultar estadísticas</span>
-              <span className="module-card__arrow"><ArrowRight size={16} /></span>
-            </div>
-          </div>
-        </Link>
       </div>
 
       {/* ── TARJETA DE GUÍA RÁPIDA ── */}

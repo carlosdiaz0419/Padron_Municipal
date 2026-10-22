@@ -19,10 +19,17 @@ export function exportToExcel({ filename = 'Reporte_DIF', title, subtitle = '', 
     minute: '2-digit',
   });
 
+  const total = data.length;
+  const activos = data.filter((b) => (b.estatus || '').toLowerCase() === 'activo').length;
+  const pendientes = data.filter((b) => (b.estatus || '').toLowerCase() === 'pendiente').length;
+  const rechazados = data.filter((b) => (b.estatus || '').toLowerCase() === 'rechazado').length;
+
+  const colSpanCount = Math.max(columns.length, 6);
+
   const tableHeaders = columns
     .map(
       (c) =>
-        `<th style="background-color: #0b1d3a; color: #ffffff; font-weight: bold; font-family: Arial, sans-serif; font-size: 10pt; border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left;">${c.header}</th>`
+        `<th style="background-color: #0b1d3a; color: #ffffff; font-weight: bold; font-family: Calibri, Arial, sans-serif; font-size: 10.5pt; border: 1px solid #1e3a8a; padding: 10px 12px; text-align: left; vertical-align: middle;">${c.header}</th>`
     )
     .join('');
 
@@ -37,7 +44,29 @@ export function exportToExcel({ filename = 'Reporte_DIF', title, subtitle = '', 
           } else {
             val = row[c.key] !== undefined && row[c.key] !== null ? String(row[c.key]) : '';
           }
-          return `<td style="font-family: Arial, sans-serif; font-size: 9pt; border: 1px solid #e2e8f0; padding: 6px 10px; background-color: ${bg}; color: #1e293b;">${val}</td>`;
+
+          const headerLower = (c.header || '').toLowerCase();
+          const keyLower = (c.key || '').toLowerCase();
+          const valLower = String(val).toLowerCase().trim();
+
+          let extraStyle = '';
+          if (headerLower.includes('estatus') || keyLower.includes('estatus')) {
+            if (valLower.includes('activo') || valLower.includes('aprobado')) {
+              extraStyle = 'background-color: #dcfce7; color: #166534; font-weight: bold; text-align: center; border-radius: 4px;';
+            } else if (valLower.includes('pendiente')) {
+              extraStyle = 'background-color: #fef3c7; color: #92400e; font-weight: bold; text-align: center; border-radius: 4px;';
+            } else if (valLower.includes('rechazado')) {
+              extraStyle = 'background-color: #fee2e2; color: #991b1b; font-weight: bold; text-align: center; border-radius: 4px;';
+            } else {
+              extraStyle = 'text-align: center; font-weight: bold;';
+            }
+          } else if (headerLower.includes('curp') || headerLower.includes('folio')) {
+            extraStyle = 'font-family: Consolas, Courier New, monospace; text-align: center; font-weight: 600;';
+          } else if (headerLower.includes('edad') || headerLower.includes('fecha') || headerLower.includes('sexo')) {
+            extraStyle = 'text-align: center;';
+          }
+
+          return `<td style="font-family: Calibri, Arial, sans-serif; font-size: 9.5pt; border: 1px solid #cbd5e1; padding: 8px 12px; background-color: ${bg}; color: #1e293b; vertical-align: middle; ${extraStyle}">${val}</td>`;
         })
         .join('');
       return `<tr>${cells}</tr>`;
@@ -52,7 +81,7 @@ export function exportToExcel({ filename = 'Reporte_DIF', title, subtitle = '', 
         <x:ExcelWorkbook>
           <x:ExcelWorksheets>
             <x:ExcelWorksheet>
-              <x:Name>Padrón DIF</x:Name>
+              <x:Name>Padrón Oficial DIF</x:Name>
               <x:WorksheetOptions>
                 <x:DisplayGridlines/>
               </x:WorksheetOptions>
@@ -63,38 +92,83 @@ export function exportToExcel({ filename = 'Reporte_DIF', title, subtitle = '', 
       <![endif]-->
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
       <style>
-        body { font-family: Arial, sans-serif; }
+        body { font-family: Calibri, Arial, sans-serif; }
       </style>
     </head>
     <body>
       <table style="border-collapse: collapse; width: 100%;">
+        <!-- Membrete de Gobierno Municipal -->
         <tr>
-          <td colspan="${columns.length}" style="font-size: 15pt; font-weight: bold; color: #0b1d3a; font-family: Arial, sans-serif; padding: 8px 0;">
+          <td colspan="${colSpanCount}" style="font-size: 14pt; font-weight: bold; color: #ffffff; background-color: #0b1d3a; font-family: Calibri, Arial, sans-serif; padding: 12px 14px; text-align: center; letter-spacing: 0.5px;">
+            H. AYUNTAMIENTO CONSTITUCIONAL DE TUXTLA GUTIÉRREZ, CHIAPAS
+          </td>
+        </tr>
+        <tr>
+          <td colspan="${colSpanCount}" style="font-size: 11pt; font-weight: bold; color: #ffffff; background-color: #1e3a8a; font-family: Calibri, Arial, sans-serif; padding: 8px 14px; text-align: center;">
             SISTEMA PARA EL DESARROLLO INTEGRAL DE LA FAMILIA (DIF MUNICIPAL)
           </td>
         </tr>
         <tr>
-          <td colspan="${columns.length}" style="font-size: 12pt; font-weight: bold; color: #2563eb; font-family: Arial, sans-serif; padding-bottom: 4px;">
-            ${title || 'Padrón Oficial de Beneficiarios'}
+          <td colspan="${colSpanCount}" style="font-size: 12pt; font-weight: bold; color: #0369a1; background-color: #f0f9ff; font-family: Calibri, Arial, sans-serif; padding: 8px 14px; border: 1px solid #bae6fd;">
+            ${title || 'PADRÓN INSTITUCIONAL DE BENEFICIARIOS'}
           </td>
         </tr>
-        ${subtitle ? `<tr><td colspan="${columns.length}" style="font-size: 9.5pt; color: #475569; font-family: Arial, sans-serif; padding-bottom: 4px;">${subtitle}</td></tr>` : ''}
         <tr>
-          <td colspan="${columns.length}" style="font-size: 8.5pt; color: #64748b; font-family: Arial, sans-serif; padding-bottom: 12px;">
-            Fecha y Hora de Emisión: ${fechaStr} | Ejercicio Fiscal 2026-2027 | Total Registros: ${data.length}
+          <td colspan="${colSpanCount}" style="font-size: 9.5pt; color: #475569; background-color: #ffffff; font-family: Calibri, Arial, sans-serif; padding: 6px 14px;">
+            ${subtitle ? subtitle : 'Dirección de Asistencia Social y Salud Comunitaria — Padrón de Ayudas Técnicas'}
           </td>
         </tr>
-        <tr></tr>
+        <!-- Fila de Metadatos y Estadísticas Rápidas -->
+        <tr>
+          <td colspan="${colSpanCount}" style="font-size: 9pt; color: #1e293b; background-color: #f1f5f9; font-family: Calibri, Arial, sans-serif; padding: 8px 14px; border-top: 1px solid #cbd5e1; border-bottom: 2px solid #0b1d3a;">
+            <strong>Emisión:</strong> ${fechaStr} &nbsp;|&nbsp; 
+            <strong>Ejercicio Fiscal:</strong> 2026 - 2027 &nbsp;|&nbsp; 
+            <strong>Total Registros:</strong> ${total} &nbsp;|&nbsp; 
+            <strong>Activos / Validados:</strong> ${activos} &nbsp;|&nbsp; 
+            <strong>Pendientes de Revisión:</strong> ${pendientes} &nbsp;|&nbsp; 
+            <strong>Rechazados:</strong> ${rechazados}
+          </td>
+        </tr>
+        <tr style="height: 14px;"></tr>
+
+        <!-- Cabeceras de Datos -->
         <thead>
           <tr>${tableHeaders}</tr>
         </thead>
+
+        <!-- Filas de Datos -->
         <tbody>
           ${tableRows}
         </tbody>
-        <tr></tr>
+
+        <!-- Espaciador -->
+        <tr style="height: 18px;"></tr>
+
+        <!-- Bloque de Firmas Normativas de Validación y Autorización -->
         <tr>
-          <td colspan="${columns.length}" style="font-size: 8pt; color: #94a3b8; font-style: italic; padding-top: 10px;">
-            "Este programa es público, ajeno a cualquier partido político. Queda prohibido el uso para fines distintos a los establecidos en el programa."
+          <td colspan="${Math.floor(colSpanCount / 3)}" style="text-align: center; padding-top: 30px; font-family: Calibri, Arial, sans-serif; font-size: 9pt; color: #334155; border-top: 1px solid #94a3b8;">
+            <strong>ELABORÓ</strong><br/>
+            C. Responsable de Captura y Padrón<br/>
+            <span style="font-size: 8pt; color: #64748b;">Área de Registro DIF Municipal</span>
+          </td>
+          <td colspan="${Math.floor(colSpanCount / 3)}" style="text-align: center; padding-top: 30px; font-family: Calibri, Arial, sans-serif; font-size: 9pt; color: #334155; border-top: 1px solid #94a3b8;">
+            <strong>REVISÓ Y VALIDÓ</strong><br/>
+            Lic. Coordinación de Supervisión y Dictámenes<br/>
+            <span style="font-size: 8pt; color: #64748b;">Dirección de Asistencia Social</span>
+          </td>
+          <td colspan="${colSpanCount - (Math.floor(colSpanCount / 3) * 2)}" style="text-align: center; padding-top: 30px; font-family: Calibri, Arial, sans-serif; font-size: 9pt; color: #334155; border-top: 1px solid #94a3b8;">
+            <strong>AUTORIZÓ</strong><br/>
+            Dirección General del Sistema DIF Municipal<br/>
+            <span style="font-size: 8pt; color: #64748b;">H. Ayuntamiento de Tuxtla Gutiérrez</span>
+          </td>
+        </tr>
+
+        <!-- Leyenda Legal Obligatoria -->
+        <tr style="height: 12px;"></tr>
+        <tr>
+          <td colspan="${colSpanCount}" style="font-size: 8pt; color: #64748b; font-style: italic; text-align: center; padding: 10px; background-color: #f8fafc; border: 1px solid #e2e8f0;">
+            "Este programa es público, ajeno a cualquier partido político. Queda prohibido el uso para fines distintos a los establecidos en el programa."<br/>
+            Documento digital generado a través del Sistema Institucional de Padrón de Beneficiarios DIF 2027.
           </td>
         </tr>
       </table>
@@ -133,13 +207,29 @@ export function exportToPDF({
   });
   const horaEmision = new Date().toLocaleTimeString('es-MX');
 
-  const printWindow = window.open('', '_blank', 'width=1100,height=850');
+  const printWindow = window.open('', '_blank', 'width=1180,height=850');
   if (!printWindow) {
     alert('Por favor permita las ventanas emergentes (pop-ups) para generar el archivo PDF.');
     return;
   }
 
-  const theadHtml = columns.map((c) => `<th>${c.header}</th>`).join('');
+  const colCount = columns.length;
+  const isUltraWide = colCount > 18;
+  const isWide = colCount > 10;
+  const numColWidth = isUltraWide ? '1.8%' : isWide ? '2.8%' : '30px';
+
+  const theadHtml = columns
+    .map((c) => {
+      let widthStyle = '';
+      if (c.pdfWidth) {
+        widthStyle = `width: ${c.pdfWidth}; min-width: ${c.pdfWidth}; max-width: ${c.pdfWidth};`;
+      } else if (isUltraWide) {
+        const autoPct = (98 / (colCount + 0.5)).toFixed(2);
+        widthStyle = `width: ${autoPct}%; max-width: ${autoPct}%;`;
+      }
+      return `<th style="${widthStyle}">${c.header}</th>`;
+    })
+    .join('');
 
   const tbodyHtml = data
     .map((row, idx) => {
@@ -151,10 +241,55 @@ export function exportToPDF({
           } else {
             val = row[c.key] !== undefined && row[c.key] !== null ? String(row[c.key]) : '';
           }
-          return `<td>${val}</td>`;
+
+          const headerLower = (c.header || '').toLowerCase();
+          const keyLower = (c.key || '').toLowerCase();
+          const valLower = String(val).toLowerCase().trim();
+
+          let formattedVal = val;
+          if (headerLower.includes('estatus') || keyLower.includes('estatus')) {
+            if (valLower.includes('activo') || valLower.includes('aprobado')) {
+              formattedVal = `<span class="badge-pdf badge-activo">✓ ${val}</span>`;
+            } else if (valLower.includes('pendiente')) {
+              formattedVal = `<span class="badge-pdf badge-pendiente">⏳ ${val}</span>`;
+            } else if (valLower.includes('rechazado')) {
+              formattedVal = `<span class="badge-pdf badge-rechazado">✕ ${val}</span>`;
+            } else {
+              formattedVal = `<span class="badge-pdf">${val}</span>`;
+            }
+          } else if (headerLower.includes('curp') || headerLower.includes('folio')) {
+            formattedVal = `<span class="text-mono">${val}</span>`;
+          }
+
+          let align = 'text-align: left;';
+          if (
+            headerLower.includes('estatus') ||
+            headerLower.includes('curp') ||
+            headerLower.includes('folio') ||
+            headerLower.includes('edad') ||
+            headerLower.includes('sexo') ||
+            headerLower.includes('fecha') ||
+            headerLower.includes('c.p.') ||
+            headerLower.includes('dep.') ||
+            headerLower.includes('tiene') ||
+            headerLower.includes('apoyo') ||
+            headerLower.includes('servicio m')
+          ) {
+            align = 'text-align: center;';
+          }
+
+          let widthStyle = '';
+          if (c.pdfWidth) {
+            widthStyle = `width: ${c.pdfWidth}; max-width: ${c.pdfWidth};`;
+          } else if (isUltraWide) {
+            const autoPct = (98 / (colCount + 0.5)).toFixed(2);
+            widthStyle = `width: ${autoPct}%; max-width: ${autoPct}%;`;
+          }
+
+          return `<td style="${align} ${widthStyle}">${formattedVal}</td>`;
         })
         .join('');
-      return `<tr><td>${idx + 1}</td>${cells}</tr>`;
+      return `<tr><td style="width: ${numColWidth}; text-align: center; font-weight: 600; color: #64748b; background-color: #f8fafc;">${idx + 1}</td>${cells}</tr>`;
     })
     .join('');
 
@@ -185,38 +320,41 @@ export function exportToPDF({
       <style>
         @page {
           size: ${orientation};
-          margin: 12mm 10mm 15mm 10mm;
+          margin: ${isUltraWide ? '3.5mm 3.5mm 5mm 3.5mm' : isWide ? '6mm 6mm 8mm 6mm' : '10mm 10mm 14mm 10mm'};
         }
         * { box-sizing: border-box; }
         body {
           font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
           color: #0f172a;
           margin: 0;
-          padding: 15px;
+          padding: ${isUltraWide ? '4px' : '14px'};
           background: #ffffff;
-          font-size: 9pt;
+          font-size: ${isUltraWide ? '5.5pt' : isWide ? '7pt' : '8.8pt'};
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
         }
         /* Barra de control en pantalla (se oculta al imprimir/guardar PDF) */
         .print-toolbar {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding: 10px 16px;
+          padding: 10px 18px;
           background: #0b1d3a;
           color: #ffffff;
-          border-radius: 8px;
-          margin-bottom: 20px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          border-radius: 9px;
+          margin-bottom: 14px;
+          box-shadow: 0 4px 14px rgba(0,0,0,0.18);
         }
         .btn-print {
           background: #2563eb;
           color: #ffffff;
           border: none;
-          padding: 8px 18px;
+          padding: 8px 20px;
           border-radius: 6px;
           font-weight: 700;
           cursor: pointer;
           font-size: 13px;
+          box-shadow: 0 2px 6px rgba(37,99,235,0.3);
         }
         .btn-print:hover { background: #1d4ed8; }
         .btn-close {
@@ -228,9 +366,23 @@ export function exportToPDF({
           cursor: pointer;
           font-size: 13px;
         }
+        .hint-text {
+          font-size: 11.5px;
+          color: #94a3b8;
+        }
         @media print {
           .no-print { display: none !important; }
-          body { padding: 0; }
+          body { 
+            padding: 0 !important; 
+            margin: 0 !important; 
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          table.data-table {
+            width: 100% !important;
+            max-width: 100% !important;
+            table-layout: fixed !important;
+          }
         }
 
         /* Encabezado Oficial */
@@ -238,34 +390,34 @@ export function exportToPDF({
           display: flex;
           align-items: center;
           justify-content: space-between;
-          border-bottom: 3px double #0b1d3a;
-          padding-bottom: 10px;
-          margin-bottom: 12px;
+          border-bottom: ${isUltraWide ? '2px solid #0b1d3a' : '3px double #0b1d3a'};
+          padding-bottom: ${isUltraWide ? '5px' : '10px'};
+          margin-bottom: ${isUltraWide ? '6px' : '12px'};
         }
         .header-brand h1 {
-          font-size: 14pt;
+          font-size: ${isUltraWide ? '10.5pt' : '13.5pt'};
           font-weight: 800;
           color: #0b1d3a;
-          margin: 0;
+          margin: 1px 0 0 0;
           letter-spacing: -0.01em;
           text-transform: uppercase;
         }
         .header-brand h2 {
-          font-size: 10pt;
+          font-size: ${isUltraWide ? '8.5pt' : '10.5pt'};
           font-weight: 700;
-          color: #2563eb;
-          margin: 2px 0 0 0;
+          color: #1d4ed8;
+          margin: 1px 0 0 0;
         }
         .header-brand p {
-          font-size: 8pt;
+          font-size: ${isUltraWide ? '6.8pt' : '8pt'};
           color: #64748b;
-          margin: 2px 0 0 0;
+          margin: 1px 0 0 0;
         }
         .header-meta {
           text-align: right;
-          font-size: 7.5pt;
+          font-size: ${isUltraWide ? '6.5pt' : '7.5pt'};
           color: #475569;
-          line-height: 1.4;
+          line-height: 1.35;
         }
         .header-folio-badge {
           display: inline-block;
@@ -273,126 +425,192 @@ export function exportToPDF({
           color: #1e40af;
           border: 1px solid #bfdbfe;
           font-weight: 700;
-          padding: 2px 8px;
+          padding: ${isUltraWide ? '1px 5px' : '2px 8px'};
           border-radius: 4px;
-          margin-bottom: 4px;
+          margin-bottom: 2px;
+          font-size: ${isUltraWide ? '6.2pt' : '7.5pt'};
         }
 
         /* Resumen de Métricas */
         .summary-cards {
           display: flex;
-          gap: 12px;
-          margin-bottom: 14px;
+          gap: ${isUltraWide ? '6px' : '12px'};
+          margin-bottom: ${isUltraWide ? '8px' : '14px'};
         }
         .summary-card {
           flex: 1;
           background: #f8fafc;
           border: 1px solid #e2e8f0;
-          border-radius: 6px;
-          padding: 8px 12px;
+          border-radius: 4px;
+          padding: ${isUltraWide ? '4px 6px' : '8px 12px'};
           text-align: center;
+          border-left: 3px solid #2563eb;
         }
         .summary-card-val {
           display: block;
-          font-size: 13pt;
+          font-size: ${isUltraWide ? '10pt' : '13pt'};
           font-weight: 800;
           color: #0b1d3a;
         }
         .summary-card-lbl {
-          font-size: 7.5pt;
+          font-size: ${isUltraWide ? '6pt' : '7.5pt'};
           color: #64748b;
           text-transform: uppercase;
           font-weight: 600;
         }
 
-        /* Tabla Oficial */
+        /* Tabla Oficial con table-layout: fixed garantizado al 100% de la hoja */
         table.data-table {
-          width: 100%;
+          width: 100% !important;
+          max-width: 100% !important;
+          table-layout: fixed !important;
           border-collapse: collapse;
-          margin-top: 8px;
-          page-break-inside: auto;
+          margin-top: 4px;
+          box-sizing: border-box;
+        }
+        table.data-table thead {
+          display: table-header-group;
         }
         table.data-table tr {
           page-break-inside: avoid;
-          page-break-after: auto;
         }
         table.data-table th {
           background-color: #0b1d3a;
           color: #ffffff;
           font-weight: 700;
           text-transform: uppercase;
-          font-size: 7.5pt;
-          padding: 6px 8px;
-          border: 1px solid #0b1d3a;
-          text-align: left;
+          font-size: ${isUltraWide ? '4.8pt' : isWide ? '6.2pt' : '7.5pt'};
+          padding: ${isUltraWide ? '2.5px 1px' : isWide ? '4px 3px' : '7px 9px'};
+          border: 1px solid #1e3a8a;
+          text-align: center;
+          line-height: 1.05;
+          letter-spacing: -0.2px;
+          word-break: break-word;
+          overflow-wrap: anywhere;
+          hyphens: auto;
+          box-sizing: border-box;
         }
         table.data-table td {
           border: 1px solid #cbd5e1;
-          padding: 5px 8px;
-          font-size: 8pt;
+          padding: ${isUltraWide ? '2px 1.5px' : isWide ? '4px 3px' : '6px 9px'};
+          font-size: ${isUltraWide ? '5.1pt' : isWide ? '6.8pt' : '8pt'};
           color: #1e293b;
+          vertical-align: middle;
+          line-height: 1.1;
+          word-break: break-word;
+          overflow-wrap: anywhere;
+          hyphens: auto;
+          box-sizing: border-box;
         }
         table.data-table tr:nth-child(even) td {
           background-color: #f8fafc;
         }
 
+        /* Badges de Estado */
+        .badge-pdf {
+          display: inline-block;
+          padding: ${isUltraWide ? '1px 2px' : isWide ? '1.5px 4px' : '2px 7px'};
+          border-radius: 3px;
+          font-weight: 700;
+          font-size: ${isUltraWide ? '4.6pt' : isWide ? '5.8pt' : '7.2pt'};
+          letter-spacing: -0.2px;
+          text-transform: uppercase;
+          white-space: nowrap;
+        }
+        .badge-activo {
+          background: #ecfdf5;
+          color: #065f46;
+          border: 1px solid #a7f3d0;
+        }
+        .badge-pendiente {
+          background: #fffbeb;
+          color: #92400e;
+          border: 1px solid #fde68a;
+        }
+        .badge-rechazado {
+          background: #fef2f2;
+          color: #991b1b;
+          border: 1px solid #fecaca;
+        }
+        .text-mono {
+          font-family: "Consolas", "Courier New", monospace;
+          font-weight: 600;
+          font-size: ${isUltraWide ? '4.8pt' : isWide ? '6.2pt' : '8pt'};
+          word-break: break-all;
+          letter-spacing: -0.3px;
+        }
+
         /* Bloque de Firmas Oficiales */
         .signatures-section {
-          margin-top: 30px;
+          margin-top: ${isUltraWide ? '12px' : '28px'};
           page-break-inside: avoid;
           display: flex;
           justify-content: space-around;
           text-align: center;
-          padding-top: 15px;
+          padding-top: ${isUltraWide ? '6px' : '15px'};
         }
         .sig-box {
-          width: 240px;
+          width: ${isUltraWide ? '180px' : '250px'};
           border-top: 1px solid #0f172a;
-          padding-top: 4px;
-          font-size: 7.5pt;
+          padding-top: 3px;
+          font-size: ${isUltraWide ? '6.2pt' : '7.5pt'};
           color: #334155;
+          line-height: 1.25;
         }
         .sig-box strong {
           display: block;
-          font-size: 8pt;
+          font-size: ${isUltraWide ? '6.8pt' : '8pt'};
           color: #0f172a;
-          margin-bottom: 2px;
+          margin-bottom: 1px;
         }
 
         /* Pie de Página Oficial */
         .footer-legal {
-          margin-top: 25px;
+          margin-top: ${isUltraWide ? '10px' : '24px'};
           border-top: 1px solid #e2e8f0;
-          padding-top: 6px;
-          font-size: 6.8pt;
+          padding-top: 4px;
+          font-size: ${isUltraWide ? '5.8pt' : '6.8pt'};
           color: #64748b;
           text-align: center;
-          line-height: 1.35;
+          line-height: 1.3;
         }
       </style>
     </head>
     <body>
       <div class="print-toolbar no-print">
-        <div style="font-weight: 700; font-size: 14px;">
-          📄 Vista Previa de Impresión Oficial (PDF)
+        <div>
+          <div style="font-weight: 700; font-size: 13.5px;">📄 Vista Previa de Impresión Oficial (PDF)</div>
+          <div class="hint-text">
+            ${isUltraWide ? '✓ Formato ajustado al 100% del ancho de hoja (24 columnas completas visibles sin recortes).' : '💡 Consejo: Selecciona "Guardar como PDF" en la ventana de impresión para guardarlo en tu computadora.'}
+          </div>
         </div>
-        <div style="display: flex; gap: 8px;">
+        <div style="display: flex; gap: 8px; align-items: center;">
           <button onclick="window.print()" class="btn-print">🖨️ Guardar como PDF / Imprimir</button>
           <button onclick="window.close()" class="btn-close">Cerrar</button>
         </div>
       </div>
 
       <div class="header-official">
-        <div class="header-brand">
-          <h1>Sistema Municipal DIF Tuxtla Gutiérrez</h1>
-          <h2>${title}</h2>
-          <p>${subtitle}</p>
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="display: inline-flex; align-items: center; justify-content: center; width: ${isUltraWide ? '36px' : '46px'}; height: ${isUltraWide ? '36px' : '46px'}; background: #0b1d3a; border-radius: 8px; flex-shrink: 0; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">
+            <svg width="${isUltraWide ? '22' : '28'}" height="${isUltraWide ? '22' : '28'}" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>
+            </svg>
+          </div>
+          <div class="header-brand">
+            <span style="font-size: ${isUltraWide ? '6.5pt' : '7.5pt'}; font-weight: 800; color: #64748b; letter-spacing: 0.8px; text-transform: uppercase;">
+              H. Ayuntamiento Constitucional de Tuxtla Gutiérrez &bull; Chiapas
+            </span>
+            <h1>Sistema Municipal DIF Tuxtla Gutiérrez</h1>
+            <h2>${title}</h2>
+            <p>${subtitle}</p>
+          </div>
         </div>
         <div class="header-meta">
-          <div class="header-folio-badge">REPORTE OFICIAL DIF-2027</div><br/>
+          <div class="header-folio-badge">EXPEDIENTE OFICIAL DIF 2027</div><br/>
           <strong>Fecha:</strong> ${fechaHoy}<br/>
           <strong>Hora:</strong> ${horaEmision}<br/>
-          <strong>Registros:</strong> ${data.length} expedientes
+          <strong>Total Expedientes:</strong> ${data.length} registros
         </div>
       </div>
 
@@ -401,7 +619,7 @@ export function exportToPDF({
       <table class="data-table">
         <thead>
           <tr>
-            <th style="width: 25px;">#</th>
+            <th style="width: ${numColWidth}; min-width: ${numColWidth}; max-width: ${numColWidth}; text-align: center;">#</th>
             ${theadHtml}
           </tr>
         </thead>
@@ -412,16 +630,16 @@ export function exportToPDF({
 
       <div class="signatures-section">
         <div class="sig-box">
-          <strong>Lic. Funcionario Responsable</strong>
-          Área de Captura y Registro de Beneficiarios
+          <strong>C. Responsable de Captura y Padrón</strong>
+          Área de Registro de Beneficiarios DIF
         </div>
         <div class="sig-box">
-          <strong>Dirección de Asistencia Social</strong>
-          Coordinación de Evaluación y Dictámenes DIF
+          <strong>Lic. Coordinación de Supervisión</strong>
+          Dirección de Asistencia Social y Salud Comunitaria
         </div>
         <div class="sig-box">
-          <strong>Sello Digital Institucional</strong>
-          Folio de Autenticidad: DIF-TUX-${Date.now().toString(36).toUpperCase()}
+          <strong>Dirección General DIF Municipal</strong>
+          Sello Digital: DIF-TUX-${Date.now().toString(36).toUpperCase()}
         </div>
       </div>
 
@@ -563,33 +781,37 @@ export function obtenerServiciosActivosTexto(b) {
  * Columnas completas con TODOS los campos del formulario para exportación tabular (PDF y Excel)
  */
 export const COLUMNAS_PADRON_COMPLETO = [
-  { header: 'Folio', render: (b) => b.folio || `DIF-2027-${String(b.id || 1).padStart(3, '0')}` },
-  { header: 'Fecha Solicitud', render: (b) => b.fecha_solicitud || (b.ultimaSolicitud ? String(b.ultimaSolicitud).slice(0, 10) : '—') },
-  { header: 'Unidad Responsable', render: (b) => b.dependencia_emisora || b.dependencia || 'Dirección de Asistencia Social' },
-  { header: 'Nombre(s)', render: (b) => b.nombres || b.nombre || '—' },
-  { header: 'Apellido Paterno', render: (b) => b.apellidoPaterno || b.apellido_paterno || '—' },
-  { header: 'Apellido Materno', render: (b) => b.apellidoMaterno || b.apellido_materno || '—' },
-  { header: 'CURP', render: (b) => b.curp || '—' },
-  { header: 'Fecha Nacimiento', render: (b) => b.fecha_nacimiento || (b.fechaNacimiento ? String(b.fechaNacimiento).slice(0, 10) : '—') },
-  { header: 'Edad', render: (b) => (b.edad !== undefined && b.edad !== null ? `${b.edad}` : '—') },
-  { header: 'Sexo', render: (b) => b.sexo || '—' },
-  { header: 'Estado Civil', render: (b) => b.estadoCivil || b.estado_civil || '—' },
+  { header: 'Folio', pdfWidth: '4.0%', render: (b) => b.folio || `DIF-2027-${String(b.id || 1).padStart(3, '0')}` },
+  { header: 'Fecha Solicitud', pdfWidth: '3.5%', render: (b) => b.fecha_solicitud || (b.ultimaSolicitud ? String(b.ultimaSolicitud).slice(0, 10) : '—') },
+  { header: 'Unidad Responsable', pdfWidth: '4.5%', render: (b) => b.dependencia_emisora || b.dependencia || 'Dirección de Asistencia Social' },
+  { header: 'Nombre(s)', pdfWidth: '4.5%', render: (b) => b.nombres || b.nombre || '—' },
+  { header: 'Apellido Paterno', pdfWidth: '4.0%', render: (b) => b.apellidoPaterno || b.apellido_paterno || '—' },
+  { header: 'Apellido Materno', pdfWidth: '4.0%', render: (b) => b.apellidoMaterno || b.apellido_materno || '—' },
+  { header: 'CURP', pdfWidth: '5.8%', render: (b) => b.curp || '—' },
+  { header: 'Fecha Nacimiento', pdfWidth: '3.5%', render: (b) => b.fecha_nacimiento || (b.fechaNacimiento ? String(b.fechaNacimiento).slice(0, 10) : '—') },
+  { header: 'Edad', pdfWidth: '1.8%', render: (b) => (b.edad !== undefined && b.edad !== null ? `${b.edad}` : '—') },
+  { header: 'Sexo', pdfWidth: '1.8%', render: (b) => b.sexo || '—' },
+  { header: 'Estado Civil', pdfWidth: '3.2%', render: (b) => b.estadoCivil || b.estado_civil || '—' },
   {
     header: 'Dep. Económico',
+    pdfWidth: '2.8%',
     render: (b) =>
       b.esDependienteEconomico === true || b.es_dependiente_economico === 'Si' ? 'Sí' : 'No',
   },
   {
     header: 'Tutor Legal',
+    pdfWidth: '4.0%',
     render: (b) => b.tutorNombre || b.nombre_tutor || 'N/A',
   },
   {
     header: 'Tiene Dependientes',
+    pdfWidth: '2.8%',
     render: (b) =>
       b.tieneDependientesEconomicos === true || b.cuenta_con_dependientes === 'Si' ? 'Sí' : 'No',
   },
   {
     header: 'Vialidad y Número',
+    pdfWidth: '6.2%',
     render: (b) => {
       const tv = b.domicilio?.tipoVialidad || b.tipo_vialidad || 'Calle';
       const nv = b.domicilio?.nombreVialidad || b.nombre_vialidad || '';
@@ -599,6 +821,7 @@ export const COLUMNAS_PADRON_COMPLETO = [
   },
   {
     header: 'Asentamiento / Colonia',
+    pdfWidth: '5.8%',
     render: (b) => {
       const ta = b.domicilio?.tipoAsentamiento || b.tipo_asentamiento || 'Colonia';
       const na = b.domicilio?.nombreAsentamiento || b.nombre_asentamiento || b.colonia || '';
@@ -607,18 +830,22 @@ export const COLUMNAS_PADRON_COMPLETO = [
   },
   {
     header: 'C.P.',
+    pdfWidth: '2.4%',
     render: (b) => b.domicilio?.codigoPostal || b.codigo_postal || b.codigoPostal || '—',
   },
   {
     header: 'Discapacidad',
+    pdfWidth: '4.2%',
     render: (b) => b.tipoDiscapacidad || b.tipo_discapacidad || 'Ninguna',
   },
   {
     header: 'Ayuda Solicitada',
+    pdfWidth: '5.5%',
     render: (b) => b.tipo_ayuda_solicitada || b.ultimaAyuda || '—',
   },
   {
     header: 'Apoyo DIF Estatal',
+    pdfWidth: '3.8%',
     render: (b) => {
       const si =
         b.haRecibidoApoyoDifEstatal === true ||
@@ -634,11 +861,13 @@ export const COLUMNAS_PADRON_COMPLETO = [
   },
   {
     header: 'Servicio Médico',
+    pdfWidth: '2.8%',
     render: (b) =>
       b.cuentaServicioMedico === true || b.cuenta_servicio_medico === 'Si' ? 'Sí' : 'No',
   },
   {
     header: 'Apoyo Gubernamental',
+    pdfWidth: '3.8%',
     render: (b) => {
       const si = b.cuentaApoyoGubernamental === true || b.cuenta_apoyo_gubernamental === 'Si';
       const desc = b.descripcionApoyoGubernamental || b.descripcion_apoyo_gubernamental || '';
@@ -647,10 +876,62 @@ export const COLUMNAS_PADRON_COMPLETO = [
   },
   {
     header: 'Servicios DIF (Anexo 5)',
+    pdfWidth: '7.8%',
     render: (b) => obtenerServiciosActivosTexto(b),
   },
   {
     header: 'Estatus',
+    pdfWidth: '3.5%',
+    render: (b) => (b.estatus || 'activo').toUpperCase(),
+  },
+];
+
+/**
+ * Padrón Oficial Ejecutivo en PDF (10 columnas consolidadas de alta legibilidad para dictámenes oficiales)
+ */
+export const COLUMNAS_PADRON_OFICIAL_PDF = [
+  { header: 'Folio', pdfWidth: '7%', render: (b) => b.folio || `DIF-2027-${String(b.id || 1).padStart(3, '0')}` },
+  { header: 'Fecha', pdfWidth: '6.5%', render: (b) => b.fecha_solicitud || (b.ultimaSolicitud ? String(b.ultimaSolicitud).slice(0, 10) : '—') },
+  {
+    header: 'Beneficiario (Nombre Completo)',
+    pdfWidth: '18%',
+    render: (b) => {
+      const nom = [b.nombres || b.nombre, b.apellidoPaterno || b.apellido_paterno, b.apellidoMaterno || b.apellido_materno].filter(Boolean).join(' ');
+      return nom || '—';
+    },
+  },
+  { header: 'CURP', pdfWidth: '12%', render: (b) => b.curp || '—' },
+  { header: 'Edad/Sexo', pdfWidth: '6.5%', render: (b) => `${b.edad !== undefined && b.edad !== null ? b.edad : '—'} / ${b.sexo || '—'}` },
+  {
+    header: 'Domicilio Completo',
+    pdfWidth: '17%',
+    render: (b) => {
+      const tv = b.domicilio?.tipoVialidad || b.tipo_vialidad || 'Calle';
+      const nv = b.domicilio?.nombreVialidad || b.nombre_vialidad || '';
+      const ne = b.domicilio?.numeroExterior || b.numero_exterior || 'S/N';
+      const ta = b.domicilio?.tipoAsentamiento || b.tipo_asentamiento || 'Col.';
+      const na = b.domicilio?.nombreAsentamiento || b.nombre_asentamiento || b.colonia || '';
+      return `${tv} ${nv} #${ne}, ${ta} ${na}`.trim();
+    },
+  },
+  {
+    header: 'Discapacidad',
+    pdfWidth: '9%',
+    render: (b) => b.tipoDiscapacidad || b.tipo_discapacidad || 'Ninguna',
+  },
+  {
+    header: 'Ayuda Solicitada',
+    pdfWidth: '11%',
+    render: (b) => b.tipo_ayuda_solicitada || b.ultimaAyuda || '—',
+  },
+  {
+    header: 'Servicios DIF',
+    pdfWidth: '8%',
+    render: (b) => obtenerServiciosActivosTexto(b),
+  },
+  {
+    header: 'Estatus',
+    pdfWidth: '5%',
     render: (b) => (b.estatus || 'activo').toUpperCase(),
   },
 ];

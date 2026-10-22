@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import BtnBackDashboard from '../../components/common/BtnBackDashboard';
 import { getBeneficiarios, getUsuarios } from '../../services/api';
 
 function AdminAuditoria() {
@@ -52,11 +54,18 @@ function AdminAuditoria() {
 
   return (
     <div>
-      <div className="page-header">
-        <h1 className="page-title">
-          <span>Bitácora de Auditoría</span>
-        </h1>
-        <p className="page-subtitle">Registro de operaciones reales en la base de datos para trazabilidad y seguridad.</p>
+      {/* Botón Volver al Dashboard en la parte superior izquierda */}
+      <div style={{ marginBottom: '1rem', display: 'flex', alignItems: 'center' }}>
+        <BtnBackDashboard to="/admin" />
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <h1 className="page-title">
+            <span>Bitácora de Auditoría</span>
+          </h1>
+          <p className="page-subtitle">Registro de operaciones reales en la base de datos para trazabilidad y seguridad.</p>
+        </div>
       </div>
 
       <div className="table-wrapper">

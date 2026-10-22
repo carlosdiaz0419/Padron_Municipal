@@ -452,6 +452,27 @@ export function adaptarBackendAFormulario(raw) {
    ALMACÉN LOCAL DE RESPALDO (Resiliencia ante error 500 de Base de Datos en Railway)
 ════════════════════════════════════════════════════════════════════════════ */
 const LOCAL_STORAGE_BENEFICIARIOS_KEY = 'padrones_beneficiarios_local_v1';
+const STATUS_MAP_KEY = 'padron_beneficiarios_status_map_v1';
+
+export function getStatusMap() {
+  try {
+    return JSON.parse(localStorage.getItem(STATUS_MAP_KEY) || '{}');
+  } catch (_) {
+    return {};
+  }
+}
+
+export function saveStatusMap(id, estatus, extra = {}) {
+  try {
+    const map = getStatusMap();
+    map[String(id)] = {
+      estatus,
+      ...extra,
+      fecha_validacion: extra.fecha_validacion || new Date().toLocaleDateString('es-MX'),
+    };
+    localStorage.setItem(STATUS_MAP_KEY, JSON.stringify(map));
+  } catch (_) {}
+}
 
 const FAKE_SEED_CURPS = new Set([
   'LOMA850312MCHLRR09',
@@ -633,8 +654,12 @@ export async function getBeneficiarios(params = {}) {
   const limit = raw?.limit ?? (params.limit || 20);
   const totalPaginas = Math.ceil(total / limit) || 1;
 
+  const statusMap = getStatusMap();
+
   const beneficiarios = dataList.map((b) => {
     const formFields = adaptarBackendAFormulario(b);
+    const persistedStatus = statusMap[String(b.id)] || {};
+    const finalEstatus = b.estatus || persistedStatus.estatus || 'pendiente';
     return {
       ...b,
       ...formFields,
@@ -652,7 +677,10 @@ export async function getBeneficiarios(params = {}) {
         formFields.fecha_solicitud || b.fecha_solicitud || (b.ultimaSolicitud ? String(b.ultimaSolicitud).slice(0, 10) : ''),
       codigo_postal:
         formFields.codigo_postal || b.codigo_postal || b.codigoPostal || b.domicilio?.codigoPostal || '',
-      estatus: b.estatus || 'activo',
+      estatus: finalEstatus,
+      motivo_rechazo: b.motivo_rechazo || persistedStatus.motivo_rechazo || null,
+      dictamen: b.dictamen || persistedStatus.dictamen || null,
+      fecha_validacion: b.fecha_validacion || persistedStatus.fecha_validacion || null,
       dependencia: b.dependencia || b.dependencia_emisora || formFields.dependencia_emisora || 'DIF - Asistencia Social',
     };
   });
@@ -786,6 +814,14 @@ export async function crearBeneficiario(data) {
    7. PUT /api/beneficiarios/:id — Actualizar datos y servicios (Admin, Capturista)
 ════════════════════════════════════════════════════════════════════════════ */
 export async function actualizarBeneficiario(id, data) {
+  if (data?.estatus) {
+    saveStatusMap(id, data.estatus, {
+      motivo_rechazo: data.motivo_rechazo || null,
+      dictamen: data.dictamen || data.observaciones || null,
+      fecha_validacion: data.fecha_validacion || new Date().toLocaleDateString('es-MX'),
+    });
+  }
+
   const payload = (data.nombres || data.nombre || data.curp)
     ? adaptarFormularioABackend(data, true)
     : data;

@@ -32,15 +32,24 @@ function CapturistaLayout() {
             <span className="sidebar__rol-pill">Capturista</span>
           </div>
         </div>
-        <button
-          type="button"
-          className="mobile-topbar__toggle"
-          onClick={() => setMobileMenuOpen((prev) => !prev)}
-          aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
-          aria-expanded={mobileMenuOpen}
-        >
-          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <button
+            onClick={() => { closeMobileMenu(); logout(); navigate('/login'); }}
+            className="btn-logout"
+            title="Cerrar Sesión"
+          >
+            <LogOut size={16} />
+          </button>
+          <button
+            type="button"
+            className="mobile-topbar__toggle"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            aria-label={mobileMenuOpen ? 'Cerrar menú de navegación' : 'Abrir menú de navegación'}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </header>
 
       {/* ── OVERLAY MÓVIL ── */}
@@ -67,22 +76,8 @@ function CapturistaLayout() {
           </button>
         </div>
 
-        <nav className="sidebar__nav">
-          <NavLink to="/capturista" end onClick={closeMobileMenu}>
-            <span className="sidebar__nav-icon"><LayoutDashboard size={18} /></span>
-            <span>Dashboard</span>
-          </NavLink>
-          <NavLink to="/capturista/beneficiarios" onClick={closeMobileMenu}>
-            <span className="sidebar__nav-icon"><ClipboardList size={18} /></span>
-            <span>Beneficiarios</span>
-          </NavLink>
-          <NavLink to="/capturista/beneficiarios/nuevo" onClick={closeMobileMenu}>
-            <span className="sidebar__nav-icon"><UserPlus size={18} /></span>
-            <span>Nuevo Registro</span>
-          </NavLink>
-        </nav>
-
-        <div className="sidebar__footer">
+        {/* ── PERFIL Y BOTÓN CERRAR SESIÓN ARRIBA EN EL MENÚ ── */}
+        <div className="sidebar__user-top">
           <div className="sidebar__user-profile">
             <div className="sidebar__avatar">
               {user?.nombre ? user.nombre.charAt(0).toUpperCase() : 'C'}
@@ -99,6 +94,21 @@ function CapturistaLayout() {
             <LogOut size={16} />
           </button>
         </div>
+
+        <nav className="sidebar__nav">
+          <NavLink to="/capturista" end onClick={closeMobileMenu}>
+            <span className="sidebar__nav-icon"><LayoutDashboard size={18} /></span>
+            <span>Dashboard</span>
+          </NavLink>
+          <NavLink to="/capturista/beneficiarios" onClick={closeMobileMenu}>
+            <span className="sidebar__nav-icon"><ClipboardList size={18} /></span>
+            <span>Beneficiarios</span>
+          </NavLink>
+          <NavLink to="/capturista/beneficiarios/nuevo" onClick={closeMobileMenu}>
+            <span className="sidebar__nav-icon"><UserPlus size={18} /></span>
+            <span>Nuevo Registro</span>
+          </NavLink>
+        </nav>
       </aside>
 
       <main className="layout__main">
