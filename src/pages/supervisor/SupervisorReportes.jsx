@@ -135,10 +135,11 @@ function SupervisorReportes() {
               alignItems: 'center', 
               gap: '0.45rem', 
               cursor: downloading ? 'not-allowed' : 'pointer',
-              background: '#f0fdf4',
-              color: '#166534',
-              borderColor: '#bbf7d0',
-              fontWeight: 600
+              background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)',
+              color: '#15803d',
+              borderColor: '#86efac',
+              fontWeight: 700,
+              boxShadow: '0 2px 8px rgba(22, 163, 74, 0.18)'
             }}
           >
             <FileSpreadsheet size={16} color="#16a34a" />

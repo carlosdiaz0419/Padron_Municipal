@@ -281,10 +281,11 @@ function CapturistaBeneficiarios() {
                   display: 'flex', 
                   alignItems: 'center', 
                   gap: '0.45rem', 
-                  background: '#f0fdf4', 
-                  color: '#166534', 
-                  borderColor: '#bbf7d0', 
-                  fontWeight: 600,
+                  background: 'linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%)', 
+                  color: '#15803d', 
+                  borderColor: '#86efac', 
+                  fontWeight: 700,
+                  boxShadow: '0 2px 8px rgba(22, 163, 74, 0.18)',
                   cursor: 'pointer'
                 }}
               >
@@ -299,10 +300,11 @@ function CapturistaBeneficiarios() {
                   display: 'flex', 
                   alignItems: 'center', 
                   gap: '0.45rem', 
-                  background: '#eff6ff', 
-                  color: '#1d4ed8', 
-                  borderColor: '#bfdbfe', 
-                  fontWeight: 600,
+                  background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)', 
+                  color: '#1e40af', 
+                  borderColor: '#93c5fd', 
+                  fontWeight: 700,
+                  boxShadow: '0 2px 8px rgba(37, 99, 235, 0.18)',
                   cursor: 'pointer'
                 }}
               >

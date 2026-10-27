@@ -66,28 +66,50 @@
 }
 
 .role-summary-card {
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 1.15rem 1.25rem;
-  border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
+  border-radius: 16px;
+  padding: 1.25rem 1.35rem;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
   display: flex;
   align-items: center;
   justify-content: space-between;
   position: relative;
   overflow: hidden;
-  border-left-width: 4px;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border-left-width: 5px;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 
-.role-summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+.role-summary-card--admin {
+  background: linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%);
+  border: 1px solid #c7d2fe;
+  border-left: 5px solid #6366f1;
 }
 
-.role-summary-card--admin      { border-left-color: #6366f1; }
-.role-summary-card--supervisor { border-left-color: #10b981; }
-.role-summary-card--capturista { border-left-color: #f59e0b; }
+.role-summary-card--admin:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -2px rgba(99, 102, 241, 0.20);
+}
+
+.role-summary-card--supervisor {
+  background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+  border: 1px solid #a7f3d0;
+  border-left: 5px solid #10b981;
+}
+
+.role-summary-card--supervisor:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -2px rgba(16, 185, 129, 0.20);
+}
+
+.role-summary-card--capturista {
+  background: linear-gradient(135deg, #ffffff 0%, #fffdf5 100%);
+  border: 1px solid #fde68a;
+  border-left: 5px solid #f59e0b;
+}
+
+.role-summary-card--capturista:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px -2px rgba(245, 158, 11, 0.20);
+}
 
 .role-card__info {
   display: flex;
@@ -95,8 +117,8 @@
 }
 
 .role-card__name {
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-size: 0.98rem;
+  font-weight: 800;
   color: #0f172a;
   text-transform: capitalize;
   display: flex;
@@ -105,44 +127,49 @@
 }
 
 .role-card__desc {
-  font-size: 0.78rem;
+  font-size: 0.80rem;
   color: #64748b;
   margin-top: 0.15rem;
 }
 
 .role-card__count {
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 700;
-  margin-top: 0.4rem;
+  margin-top: 0.45rem;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
 }
 
 .role-card__badge {
-  padding: 0.2rem 0.5rem;
-  border-radius: 6px;
+  padding: 0.22rem 0.6rem;
+  border-radius: 9999px;
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 800;
 }
 
-.role-card__badge--admin      { background: #eef2ff; color: #4338ca; }
-.role-card__badge--supervisor { background: #ecfdf5; color: #047857; }
-.role-card__badge--capturista { background: #fffbeb; color: #b45309; }
+.role-card__badge--admin      { background: #e0e7ff; color: #3730a3; border: 1px solid #c7d2fe; }
+.role-card__badge--supervisor { background: #d1fae5; color: #065f46; border: 1px solid #a7f3d0; }
+.role-card__badge--capturista { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
 
 .role-card__icon-box {
-  width: 42px;
-  height: 42px;
-  border-radius: 12px;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
-.role-summary-card--admin .role-card__icon-box      { background: #eef2ff; color: #6366f1; }
-.role-summary-card--supervisor .role-card__icon-box { background: #ecfdf5; color: #10b981; }
-.role-summary-card--capturista .role-card__icon-box { background: #fffbeb; color: #f59e0b; }
+.role-summary-card:hover .role-card__icon-box {
+  transform: scale(1.08);
+}
+
+.role-summary-card--admin .role-card__icon-box      { background: linear-gradient(135deg, #6366f1, #4338ca); color: #ffffff; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35); }
+.role-summary-card--supervisor .role-card__icon-box { background: linear-gradient(135deg, #10b981, #047857); color: #ffffff; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.35); }
+.role-summary-card--capturista .role-card__icon-box { background: linear-gradient(135deg, #f59e0b, #d97706); color: #ffffff; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35); }
 
 /* ── Barra de Herramientas y Filtros ─────────────────────────────── */
 .perm-toolbar {
