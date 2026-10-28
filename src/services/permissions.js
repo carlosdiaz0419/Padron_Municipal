@@ -4,6 +4,8 @@
  * ════════════════════════════════════════════════════════════════════════════
  */
 
+import { hasValidBackendToken } from './api';
+
 export const STORAGE_KEY_PERMISSIONS = 'padrones_role_permissions';
 export const STORAGE_KEY_USER_OVERRIDES = 'padrones_user_permission_overrides';
 
@@ -144,6 +146,7 @@ function getAuthHeadersForPerms() {
 }
 
 function pushPermissionsToBackend() {
+  if (!hasValidBackendToken()) return;
   try {
     const rolePermissions = getRolePermissions();
     const rawOverrides = localStorage.getItem(STORAGE_KEY_USER_OVERRIDES);
@@ -157,6 +160,7 @@ function pushPermissionsToBackend() {
 }
 
 export async function syncPermissionsFromBackend() {
+  if (!hasValidBackendToken()) return;
   try {
     const res = await fetch('/api/usuarios/permisos', {
       method: 'GET',
@@ -221,11 +225,13 @@ export function resetRolePermissions() {
   try {
     localStorage.removeItem(STORAGE_KEY_PERMISSIONS);
     localStorage.removeItem(STORAGE_KEY_USER_OVERRIDES);
-    fetch('/api/usuarios/permisos', {
-      method: 'PUT',
-      headers: getAuthHeadersForPerms(),
-      body: JSON.stringify({ rolePermissions: DEFAULT_ROLE_PERMISSIONS, userOverrides: {} }),
-    }).catch(() => {});
+    if (hasValidBackendToken()) {
+      fetch('/api/usuarios/permisos', {
+        method: 'PUT',
+        headers: getAuthHeadersForPerms(),
+        body: JSON.stringify({ rolePermissions: DEFAULT_ROLE_PERMISSIONS, userOverrides: {} }),
+      }).catch(() => {});
+    }
     window.dispatchEvent(new Event('padrones_permissions_updated'));
     return JSON.parse(JSON.stringify(DEFAULT_ROLE_PERMISSIONS));
   } catch (err) {
