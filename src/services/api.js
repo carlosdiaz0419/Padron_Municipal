@@ -25,11 +25,14 @@ function normalizeUrl(url) {
   return cleaned;
 }
 
-// En entorno de desarrollo (localhost), usamos las rutas relativas ('/api' y '/health')
-// para que pasen a través del proxy de Vite configurado en vite.config.mjs.
+// En entorno de desarrollo (localhost) o en Vercel (con vercel.json), usamos las rutas relativas ('/api' y '/health')
+// para que pasen a través del proxy de Vite o los rewrites de Vercel.
 // Esto elimina por completo el error de CORS porque la llamada es Same-Origin para el navegador.
 const isLocalhost = typeof window !== 'undefined' && 
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+
+const isVercel = typeof window !== 'undefined' && 
+  (window.location.hostname.endsWith('.vercel.app') || window.location.hostname.includes('vercel.app'));
 
 const envBackend = (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env.VITE_BACKEND_URL || import.meta.env.REACT_APP_BACKEND_URL)) ||
   (typeof process !== 'undefined' && process.env && (process.env.REACT_APP_BACKEND_URL || process.env.VITE_BACKEND_URL));
@@ -37,7 +40,7 @@ const envBackend = (typeof import.meta !== 'undefined' && import.meta.env && (im
 const envApi = (typeof import.meta !== 'undefined' && import.meta.env && (import.meta.env.VITE_API_URL || import.meta.env.REACT_APP_API_URL)) ||
   (typeof process !== 'undefined' && process.env && (process.env.REACT_APP_API_URL || process.env.VITE_API_URL));
 
-const shouldUseProxy = isLocalhost && (!envApi || envApi.startsWith('/') || envApi.includes('localhost') || envApi.includes('railway.app'));
+const shouldUseProxy = (isLocalhost || isVercel) && (!envApi || envApi.startsWith('/') || envApi.includes('localhost') || envApi.includes('railway.app'));
 
 const RAW_BACKEND = shouldUseProxy 
   ? '' 
@@ -45,10 +48,12 @@ const RAW_BACKEND = shouldUseProxy
 
 const RAW_API = shouldUseProxy 
   ? '/api' 
-  : (envApi || `${RAW_BACKEND}/api`);
+  : (envApi 
+      ? (envApi.endsWith('/api') ? envApi : `${envApi.replace(/\/+$/, '')}/api`) 
+      : `${RAW_BACKEND}/api`);
 
-const BACKEND_BASE = normalizeUrl(RAW_BACKEND);
-const API_URL = normalizeUrl(RAW_API);
+export const BACKEND_BASE = normalizeUrl(RAW_BACKEND);
+export const API_URL = normalizeUrl(RAW_API);
 
 const DEFAULT_LOCAL_USERS = [
   { id: 4, nombre: 'Administrador General DIF', usuario: 'prueba@gmail.com.mx', rol: 'admin', dependencia: 'Dirección General DIF', activo: true, password: '123456789' },
