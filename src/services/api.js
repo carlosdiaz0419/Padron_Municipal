@@ -62,6 +62,28 @@ const DEFAULT_LOCAL_USERS = [
 ];
 
 /**
+ * Circuit Breaker en memoria y sesión para evitar llamadas repetidas a rutas
+ * inexistentes (404) o con errores internos de base de datos remota (500).
+ */
+export function isBackendFeatureAvailable(feature) {
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      const val = sessionStorage.getItem(`padrones_feat_${feature}`);
+      if (val === '0') return false;
+    }
+  } catch (_) {}
+  return true;
+}
+
+export function setBackendFeatureAvailable(feature, available) {
+  try {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem(`padrones_feat_${feature}`, available ? '1' : '0');
+    }
+  } catch (_) {}
+}
+
+/**
  * Verifica si un token JWT real del backend está vigente (no expirado).
  */
 export function hasValidBackendToken() {
@@ -658,7 +680,7 @@ export async function getBeneficiarios(params = {}) {
   const url = queryString ? `${API_URL}/beneficiarios?${queryString}` : `${API_URL}/beneficiarios`;
 
   let raw;
-  if (!hasValidBackendToken()) {
+  if (!hasValidBackendToken() || !isBackendFeatureAvailable('beneficiarios')) {
     raw = buildLocalBeneficiariosResponse(params, q);
   } else {
     try {
@@ -666,8 +688,14 @@ export async function getBeneficiarios(params = {}) {
         method: 'GET',
         headers: getAuthHeaders(),
       });
-      raw = await handleResponse(res);
+      if (res.status >= 500 || res.status === 404) {
+        setBackendFeatureAvailable('beneficiarios', false);
+        raw = buildLocalBeneficiariosResponse(params, q);
+      } else {
+        raw = await handleResponse(res);
+      }
     } catch (_) {
+      setBackendFeatureAvailable('beneficiarios', false);
       raw = buildLocalBeneficiariosResponse(params, q);
     }
   }
@@ -757,18 +785,24 @@ function buildLocalBeneficiariosResponse(params = {}, q = '') {
    5. GET /api/beneficiarios/:id — Detalle con solicitudes y servicios (Todos)
 ════════════════════════════════════════════════════════════════════════════ */
 export async function getBeneficiarioById(id) {
-  if (hasValidBackendToken()) {
+  if (hasValidBackendToken() && isBackendFeatureAvailable('beneficiarios')) {
     try {
       const res = await fetch(`${API_URL}/beneficiarios/${id}`, {
         method: 'GET',
         headers: getAuthHeaders(),
       });
-      const raw = await handleResponse(res);
-      return {
-        ...raw,
-        ...adaptarBackendAFormulario(raw),
-      };
-    } catch (_) {}
+      if (res.status >= 500 || res.status === 404) {
+        setBackendFeatureAvailable('beneficiarios', false);
+      } else {
+        const raw = await handleResponse(res);
+        return {
+          ...raw,
+          ...adaptarBackendAFormulario(raw),
+        };
+      }
+    } catch (_) {
+      setBackendFeatureAvailable('beneficiarios', false);
+    }
   }
 
   const allLocal = getLocalBeneficiariosStore();
@@ -785,16 +819,21 @@ export async function getBeneficiarioById(id) {
 ════════════════════════════════════════════════════════════════════════════ */
 export async function crearBeneficiario(data) {
   const payload = adaptarFormularioABackend(data, false);
-  if (hasValidBackendToken()) {
+  if (hasValidBackendToken() && isBackendFeatureAvailable('beneficiarios')) {
     try {
       const res = await fetch(`${API_URL}/beneficiarios`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
-      return await handleResponse(res);
+      if (res.status >= 500) {
+        setBackendFeatureAvailable('beneficiarios', false);
+      } else {
+        return await handleResponse(res);
+      }
     } catch (err) {
       if (err.status === 400 || err.status === 409) throw err;
+      setBackendFeatureAvailable('beneficiarios', false);
     }
   }
 
@@ -852,16 +891,21 @@ export async function actualizarBeneficiario(id, data) {
     ? adaptarFormularioABackend(data, true)
     : data;
 
-  if (hasValidBackendToken() && (data.nombres || data.nombre || data.curp)) {
+  if (hasValidBackendToken() && isBackendFeatureAvailable('beneficiarios') && (data.nombres || data.nombre || data.curp)) {
     try {
       const res = await fetch(`${API_URL}/beneficiarios/${id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
-      return await handleResponse(res);
+      if (res.status >= 500) {
+        setBackendFeatureAvailable('beneficiarios', false);
+      } else {
+        return await handleResponse(res);
+      }
     } catch (err) {
       if (err.status === 400 || err.status === 409) throw err;
+      setBackendFeatureAvailable('beneficiarios', false);
     }
   }
 
@@ -899,16 +943,21 @@ export async function agregarSolicitudBeneficiario(id, solicitudData) {
     descripcionApoyoDifEstatal: solicitudData.descripcionApoyoDifEstatal || solicitudData.descripcion_apoyo_estatal || solicitudData.observaciones || null,
   };
 
-  if (hasValidBackendToken()) {
+  if (hasValidBackendToken() && isBackendFeatureAvailable('beneficiarios')) {
     try {
       const res = await fetch(`${API_URL}/beneficiarios/${id}/solicitudes`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
-      return await handleResponse(res);
+      if (res.status >= 500) {
+        setBackendFeatureAvailable('beneficiarios', false);
+      } else {
+        return await handleResponse(res);
+      }
     } catch (err) {
       if (err.status === 400) throw err;
+      setBackendFeatureAvailable('beneficiarios', false);
     }
   }
 
@@ -930,14 +979,20 @@ export async function agregarSolicitudBeneficiario(id, solicitudData) {
    9. DELETE /api/beneficiarios/:id — Eliminar beneficiario (Admin, Capturista)
 ════════════════════════════════════════════════════════════════════════════ */
 export async function eliminarBeneficiario(id) {
-  if (hasValidBackendToken()) {
+  if (hasValidBackendToken() && isBackendFeatureAvailable('beneficiarios')) {
     try {
       const res = await fetch(`${API_URL}/beneficiarios/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
       });
-      return await handleResponse(res);
-    } catch (_) {}
+      if (res.status >= 500) {
+        setBackendFeatureAvailable('beneficiarios', false);
+      } else {
+        return await handleResponse(res);
+      }
+    } catch (_) {
+      setBackendFeatureAvailable('beneficiarios', false);
+    }
   }
 
   const allLocal = getLocalBeneficiariosStore().filter((b) => String(b.id) !== String(id));
@@ -949,7 +1004,7 @@ export async function eliminarBeneficiario(id) {
    UTILIDADES ADICIONALES (Compatibilidad con vistas existentes)
 ════════════════════════════════════════════════════════════════════════════ */
 export async function getUsuarios() {
-  if (!hasValidBackendToken()) {
+  if (!hasValidBackendToken() || !isBackendFeatureAvailable('usuarios')) {
     try {
       const stored = localStorage.getItem('padrones_usuarios_list');
       if (stored) {
@@ -961,9 +1016,8 @@ export async function getUsuarios() {
   }
   try {
     const res = await fetch(`${API_URL}/usuarios`, { headers: getAuthHeaders() });
-    return await handleResponse(res);
-  } catch (err) {
-    if (err.status === 401) {
+    if (res.status === 404 || res.status >= 500) {
+      setBackendFeatureAvailable('usuarios', false);
       try {
         const stored = localStorage.getItem('padrones_usuarios_list');
         if (stored) {
@@ -973,12 +1027,22 @@ export async function getUsuarios() {
       } catch (_) {}
       return DEFAULT_LOCAL_USERS;
     }
-    throw err;
+    return await handleResponse(res);
+  } catch (err) {
+    setBackendFeatureAvailable('usuarios', false);
+    try {
+      const stored = localStorage.getItem('padrones_usuarios_list');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (_) {}
+    return DEFAULT_LOCAL_USERS;
   }
 }
 
 export async function crearUsuario(data) {
-  if (!hasValidBackendToken()) {
+  if (!hasValidBackendToken() || !isBackendFeatureAvailable('usuarios')) {
     const nuevo = {
       id: Date.now(),
       nombre: data.nombre || data.usuario,
@@ -996,9 +1060,8 @@ export async function crearUsuario(data) {
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
-    return await handleResponse(res);
-  } catch (err) {
-    if (err.status === 401) {
+    if (res.status === 404 || res.status >= 500) {
+      setBackendFeatureAvailable('usuarios', false);
       return {
         id: Date.now(),
         nombre: data.nombre || data.usuario,
@@ -1009,12 +1072,23 @@ export async function crearUsuario(data) {
         fecha_registro: new Date().toLocaleDateString('es-MX'),
       };
     }
-    throw err;
+    return await handleResponse(res);
+  } catch (err) {
+    setBackendFeatureAvailable('usuarios', false);
+    return {
+      id: Date.now(),
+      nombre: data.nombre || data.usuario,
+      usuario: data.usuario,
+      rol: data.rol || 'capturista',
+      dependencia: data.dependencia || 'Dirección de Asistencia Social',
+      activo: data.activo !== false,
+      fecha_registro: new Date().toLocaleDateString('es-MX'),
+    };
   }
 }
 
 export async function actualizarUsuario(id, data) {
-  if (!hasValidBackendToken()) {
+  if (!hasValidBackendToken() || !isBackendFeatureAvailable('usuarios')) {
     return { ok: true, id, ...data };
   }
   try {
@@ -1023,17 +1097,19 @@ export async function actualizarUsuario(id, data) {
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
-    return await handleResponse(res);
-  } catch (err) {
-    if (err.status === 401) {
+    if (res.status === 404 || res.status >= 500) {
+      setBackendFeatureAvailable('usuarios', false);
       return { ok: true, id, ...data };
     }
-    throw err;
+    return await handleResponse(res);
+  } catch (err) {
+    setBackendFeatureAvailable('usuarios', false);
+    return { ok: true, id, ...data };
   }
 }
 
 export async function eliminarUsuario(id) {
-  if (!hasValidBackendToken()) {
+  if (!hasValidBackendToken() || !isBackendFeatureAvailable('usuarios')) {
     return { ok: true, id };
   }
   try {
@@ -1041,12 +1117,14 @@ export async function eliminarUsuario(id) {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
-    return await handleResponse(res);
-  } catch (err) {
-    if (err.status === 401) {
+    if (res.status === 404 || res.status >= 500) {
+      setBackendFeatureAvailable('usuarios', false);
       return { ok: true, id };
     }
-    throw err;
+    return await handleResponse(res);
+  } catch (err) {
+    setBackendFeatureAvailable('usuarios', false);
+    return { ok: true, id };
   }
 }
 

@@ -4,7 +4,7 @@
  * ════════════════════════════════════════════════════════════════════════════
  */
 
-import { hasValidBackendToken, API_URL } from './api';
+import { hasValidBackendToken, API_URL, isBackendFeatureAvailable, setBackendFeatureAvailable } from './api';
 
 export const STORAGE_KEY_PERMISSIONS = 'padrones_role_permissions';
 export const STORAGE_KEY_USER_OVERRIDES = 'padrones_user_permission_overrides';
@@ -146,7 +146,7 @@ function getAuthHeadersForPerms() {
 }
 
 function pushPermissionsToBackend() {
-  if (!hasValidBackendToken()) return;
+  if (!hasValidBackendToken() || !isBackendFeatureAvailable('permisos')) return;
   try {
     const rolePermissions = getRolePermissions();
     const rawOverrides = localStorage.getItem(STORAGE_KEY_USER_OVERRIDES);
@@ -155,17 +155,29 @@ function pushPermissionsToBackend() {
       method: 'PUT',
       headers: getAuthHeadersForPerms(),
       body: JSON.stringify({ rolePermissions, userOverrides }),
-    }).catch(() => {});
+    })
+      .then((res) => {
+        if (res.status === 404 || res.status >= 500) {
+          setBackendFeatureAvailable('permisos', false);
+        }
+      })
+      .catch(() => {
+        setBackendFeatureAvailable('permisos', false);
+      });
   } catch (_) {}
 }
 
 export async function syncPermissionsFromBackend() {
-  if (!hasValidBackendToken()) return;
+  if (!hasValidBackendToken() || !isBackendFeatureAvailable('permisos')) return;
   try {
     const res = await fetch(`${API_URL}/usuarios/permisos`, {
       method: 'GET',
       headers: getAuthHeadersForPerms(),
     });
+    if (res.status === 404 || res.status >= 500) {
+      setBackendFeatureAvailable('permisos', false);
+      return;
+    }
     if (!res.ok) return;
     const data = await res.json();
     let changed = false;
@@ -180,7 +192,9 @@ export async function syncPermissionsFromBackend() {
     if (changed) {
       window.dispatchEvent(new Event('padrones_permissions_updated'));
     }
-  } catch (_) {}
+  } catch (_) {
+    setBackendFeatureAvailable('permisos', false);
+  }
 }
 
 /**
@@ -225,12 +239,20 @@ export function resetRolePermissions() {
   try {
     localStorage.removeItem(STORAGE_KEY_PERMISSIONS);
     localStorage.removeItem(STORAGE_KEY_USER_OVERRIDES);
-    if (hasValidBackendToken()) {
+    if (hasValidBackendToken() && isBackendFeatureAvailable('permisos')) {
       fetch(`${API_URL}/usuarios/permisos`, {
         method: 'PUT',
         headers: getAuthHeadersForPerms(),
         body: JSON.stringify({ rolePermissions: DEFAULT_ROLE_PERMISSIONS, userOverrides: {} }),
-      }).catch(() => {});
+      })
+        .then((res) => {
+          if (res.status === 404 || res.status >= 500) {
+            setBackendFeatureAvailable('permisos', false);
+          }
+        })
+        .catch(() => {
+          setBackendFeatureAvailable('permisos', false);
+        });
     }
     window.dispatchEvent(new Event('padrones_permissions_updated'));
     return JSON.parse(JSON.stringify(DEFAULT_ROLE_PERMISSIONS));
