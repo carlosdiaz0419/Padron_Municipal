@@ -28,8 +28,8 @@ function SupervisorReportes() {
       .then((res) => {
         const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
         const total = lista.length;
-        const activos = lista.filter((b) => (b.estatus || 'activo').toLowerCase() === 'activo').length;
-        const pendientes = lista.filter((b) => (b.estatus || '').toLowerCase() === 'pendiente').length;
+        const activos = lista.filter((b) => ['activo', 'aprobado', 'validado'].includes(String(b.estatus || 'activo').toLowerCase())).length;
+        const pendientes = lista.filter((b) => ['pendiente', 'en proceso', 'por validar'].includes(String(b.estatus || '').toLowerCase())).length;
         const pct = total > 0 ? Math.round((activos / total) * 100) : 0;
         setResumen({ total, activos, pendientes, pct });
       })
@@ -46,10 +46,10 @@ function SupervisorReportes() {
     const lista = res?.beneficiarios || (Array.isArray(res) ? res : []);
 
     const total = lista.length;
-    const activos = lista.filter((b) => b.estatus === 'activo').length;
-    const pendientes = lista.filter((b) => b.estatus === 'pendiente').length;
-    const rechazados = lista.filter((b) => b.estatus === 'rechazado').length;
-    const otros = total - activos - pendientes - rechazados;
+    const activos = lista.filter((b) => ['activo', 'aprobado', 'validado'].includes(String(b.estatus || 'activo').toLowerCase())).length;
+    const pendientes = lista.filter((b) => ['pendiente', 'en proceso', 'por validar'].includes(String(b.estatus || '').toLowerCase())).length;
+    const rechazados = lista.filter((b) => ['rechazado', 'inactivo'].includes(String(b.estatus || '').toLowerCase())).length;
+    const otros = Math.max(0, total - activos - pendientes - rechazados);
     const pct = total > 0 ? Math.round((activos / total) * 100) : 0;
 
     const dataFilas = [

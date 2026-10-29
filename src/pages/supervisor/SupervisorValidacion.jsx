@@ -175,12 +175,17 @@ function SupervisorValidacion() {
 
   // Filtros
   const filtrados = expedientes.filter((exp) => {
+    const s = String(exp.estatus || 'pendiente').toLowerCase();
+    const esPend = s === 'pendiente' || s === 'en proceso' || s === 'por validar';
+    const esVal = s === 'validado' || s === 'aprobado' || s === 'activo';
+    const esRech = s === 'rechazado' || s === 'inactivo';
+
     const cumpleEstatus =
       activeTab === 'pendientes'
-        ? exp.estatus === 'pendiente'
+        ? esPend
         : activeTab === 'validados'
-        ? exp.estatus === 'activo'
-        : exp.estatus === 'rechazado';
+        ? esVal
+        : esRech;
 
     const q = search.trim().toLowerCase();
     if (!q) return cumpleEstatus;
@@ -195,9 +200,18 @@ function SupervisorValidacion() {
     return cumpleEstatus && coincide;
   });
 
-  const conteoPendientes = expedientes.filter((e) => e.estatus === 'pendiente').length;
-  const conteoAprobados = expedientes.filter((e) => e.estatus === 'activo').length;
-  const conteoRechazados = expedientes.filter((e) => e.estatus === 'rechazado').length;
+  const conteoPendientes = expedientes.filter((e) => {
+    const s = String(e.estatus || 'pendiente').toLowerCase();
+    return s === 'pendiente' || s === 'en proceso' || s === 'por validar';
+  }).length;
+  const conteoAprobados = expedientes.filter((e) => {
+    const s = String(e.estatus || '').toLowerCase();
+    return s === 'validado' || s === 'aprobado' || s === 'activo';
+  }).length;
+  const conteoRechazados = expedientes.filter((e) => {
+    const s = String(e.estatus || '').toLowerCase();
+    return s === 'rechazado' || s === 'inactivo';
+  }).length;
 
   return (
     <div>

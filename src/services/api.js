@@ -622,7 +622,7 @@ const INITIAL_BENEFICIARIOS_SEED = [
     tipo_discapacidad: 'Auditiva bilateral moderada',
     tipo_ayuda_solicitada: 'Auxiliar auditivo digital',
     fecha_solicitud: '2026-10-20',
-    estatus: 'aprobado',
+    estatus: 'pendiente',
     dependencia: 'CEMTRI - Centro de Especialidades Médicas',
     dependencia_emisora: 'CEMTRI - Centro de Especialidades Médicas',
     servicios_dif: { tl: true },
@@ -648,7 +648,7 @@ const INITIAL_BENEFICIARIOS_SEED = [
     tipo_discapacidad: 'Motriz (Movilidad reducida)',
     tipo_ayuda_solicitada: 'Andadera ortopédica con ruedas y asiento',
     fecha_solicitud: '2026-10-22',
-    estatus: 'aprobado',
+    estatus: 'validado',
     dependencia: 'Casa del Abuelo',
     dependencia_emisora: 'Casa del Abuelo',
     servicios_dif: { estancia: true, ejercicio: true },
@@ -674,7 +674,7 @@ const INITIAL_BENEFICIARIOS_SEED = [
     tipo_discapacidad: 'Ninguna',
     tipo_ayuda_solicitada: 'Canasta Alimentaria y Nutricional DIF',
     fecha_solicitud: '2026-10-25',
-    estatus: 'en proceso',
+    estatus: 'pendiente',
     dependencia: 'Dirección de Asistencia Social',
     dependencia_emisora: 'Dirección de Asistencia Social',
     servicios_dif: { came: true },
@@ -700,7 +700,8 @@ const INITIAL_BENEFICIARIOS_SEED = [
     tipo_discapacidad: 'Intelectual',
     tipo_ayuda_solicitada: 'Terapia Cognitivo-Conductual y Consulta Psicológica',
     fecha_solicitud: '2026-10-28',
-    estatus: 'aprobado',
+    estatus: 'rechazado',
+    motivo_rechazo: 'Documentación incompleta: falta valoración médica oficial CEMTRI',
     dependencia: 'CEMTRI - Centro de Especialidades Médicas',
     dependencia_emisora: 'CEMTRI - Centro de Especialidades Médicas',
     servicios_dif: { tcc: true, cpsic: true },
@@ -712,8 +713,14 @@ function getLocalBeneficiariosStore() {
     const raw = localStorage.getItem(LOCAL_STORAGE_BENEFICIARIOS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed) && parsed.length >= INITIAL_BENEFICIARIOS_SEED.length) {
         return parsed;
+      }
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const existingIds = new Set(parsed.map((p) => p.id));
+        const merged = [...parsed, ...INITIAL_BENEFICIARIOS_SEED.filter((s) => !existingIds.has(s.id))];
+        localStorage.setItem(LOCAL_STORAGE_BENEFICIARIOS_KEY, JSON.stringify(merged));
+        return merged;
       }
     }
   } catch (_) {}
