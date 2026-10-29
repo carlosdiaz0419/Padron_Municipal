@@ -5,8 +5,28 @@
   "outputDirectory": "build",
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://backend-beneficiarios-production.up.railway.app/api/:path*"
+      "source": "/api/beneficiarios/:path*",
+      "destination": "https://backend-beneficiarios-production.up.railway.app/api/beneficiarios/:path*"
+    },
+    {
+      "source": "/api/beneficiarios",
+      "destination": "https://backend-beneficiarios-production.up.railway.app/api/beneficiarios"
+    },
+    {
+      "source": "/api/auth/:path*",
+      "destination": "https://backend-beneficiarios-production.up.railway.app/api/auth/:path*"
+    },
+    {
+      "source": "/api/auth",
+      "destination": "https://backend-beneficiarios-production.up.railway.app/api/auth"
+    },
+    {
+      "source": "/api/catalogos/:path*",
+      "destination": "https://backend-beneficiarios-production.up.railway.app/api/catalogos/:path*"
+    },
+    {
+      "source": "/api/catalogos",
+      "destination": "https://backend-beneficiarios-production.up.railway.app/api/catalogos"
     },
     {
       "source": "/health",
