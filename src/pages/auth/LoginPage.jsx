@@ -35,7 +35,7 @@ function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ usuario: '', password: '' });
+  const [form, setForm] = useState({ usuario: 'prueba@gmail.com.mx', password: '123456789' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
