@@ -204,8 +204,24 @@ export async function checkHealth() {
    2. POST /api/auth/login — Devuelve el token JWT real desde la API (Público)
 ════════════════════════════════════════════════════════════════════════════ */
 export async function login(usuario, password) {
-  const uClean = String(usuario || '').trim().replace(/\s+@\s*/g, '@');
+  let uClean = String(usuario || '').trim().replace(/\s+@\s*/g, '@');
   const pClean = String(password || '').trim();
+
+  // Mapear alias comunes y normalizar correos si el usuario olvidó el '.mx'
+  const uLower = uClean.toLowerCase();
+  if (uLower === 'admin' || uLower === 'administrador') {
+    uClean = 'prueba@gmail.com.mx';
+  } else if (uLower === 'capturista') {
+    uClean = 'difmunicipal@gmail.com.mx';
+  } else if (uLower === 'supervisor') {
+    uClean = 'supervisor@gmail.com.mx';
+  } else if (/^prueba@gmail\.com$/i.test(uClean)) {
+    uClean = 'prueba@gmail.com.mx';
+  } else if (/^difmunicipal@gmail\.com$/i.test(uClean)) {
+    uClean = 'difmunicipal@gmail.com.mx';
+  } else if (/^supervisor@gmail\.com$/i.test(uClean)) {
+    uClean = 'supervisor@gmail.com.mx';
+  }
 
   // Primero verificar si el usuario fue gestionado o su contraseña actualizada en el módulo AdminUsuarios
   let localUsers = DEFAULT_LOCAL_USERS;

@@ -184,6 +184,75 @@ function LoginPage() {
               </button>
             </form>
 
+            {/* Accesos rápidos de prueba institucional */}
+            <div style={{ marginTop: '14px', paddingTop: '10px', borderTop: '1px dashed #cbd5e1' }}>
+              <p style={{ fontSize: '11px', color: '#64748b', textAlign: 'center', marginBottom: '8px', fontWeight: 600 }}>
+                Cuentas oficiales autorizadas (Clic para autocompletar):
+              </p>
+              <div style={{ display: 'flex', gap: '6px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForm({ usuario: 'prueba@gmail.com.mx', password: '123456789' });
+                    setError('');
+                  }}
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    padding: '4px 9px',
+                    fontSize: '11px',
+                    color: '#1e293b',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  Admin
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForm({ usuario: 'difmunicipal@gmail.com.mx', password: 'dif123' });
+                    setError('');
+                  }}
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    padding: '4px 9px',
+                    fontSize: '11px',
+                    color: '#1e293b',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  Capturista
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForm({ usuario: 'supervisor@gmail.com.mx', password: 'supervisor123' });
+                    setError('');
+                  }}
+                  style={{
+                    background: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    padding: '4px 9px',
+                    fontSize: '11px',
+                    color: '#1e293b',
+                    cursor: 'pointer',
+                    fontWeight: 600,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  Supervisor
+                </button>
+              </div>
+            </div>
+
             {/* Pie de confianza institucional */}
             <div className="card-footer-trust">
               <div className="trust-divider"></div>
