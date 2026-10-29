@@ -522,28 +522,198 @@ export function saveStatusMap(id, estatus, extra = {}) {
   } catch (_) {}
 }
 
-const FAKE_SEED_CURPS = new Set([
-  'LOMA850312MCHLRR09',
-  'GARC520824HCHPRN04',
-  'SAPE931105MCHNRL02',
-  'HECA780619HCHTRM08',
-]);
-
-const INITIAL_BENEFICIARIOS_SEED = [];
+const INITIAL_BENEFICIARIOS_SEED = [
+  {
+    id: 4,
+    folio: 'DIF-2027-004',
+    nombre: 'Juan',
+    apellido_paterno: 'Pérez',
+    apellido_materno: 'Gómez',
+    nombre_completo: 'Juan Pérez Gómez',
+    curp: 'PEPJ900101HDFRRN01',
+    fecha_nacimiento: '1990-01-01',
+    edad: 36,
+    sexo: 'H',
+    estado_civil: 'Soltero(a)',
+    tipo_vialidad: 'Calle',
+    nombre_vialidad: 'Central',
+    numero_exterior: '123',
+    tipo_asentamiento: 'Colonia',
+    nombre_asentamiento: 'Centro',
+    codigo_postal: '29000',
+    tipo_discapacidad: 'Motriz',
+    tipo_ayuda_solicitada: 'Silla de ruedas estándar',
+    fecha_solicitud: '2026-10-29',
+    estatus: 'aprobado',
+    dependencia: 'Dirección de Asistencia Social',
+    dependencia_emisora: 'Dirección de Asistencia Social',
+    servicios_dif: { tf: true },
+  },
+  {
+    id: 5,
+    folio: 'DIF-2027-005',
+    nombre: 'María Elena',
+    apellido_paterno: 'Gómez',
+    apellido_materno: 'Cruz',
+    nombre_completo: 'María Elena Gómez Cruz',
+    curp: 'GOCM750415MCHMRR03',
+    fecha_nacimiento: '1975-04-15',
+    edad: 51,
+    sexo: 'M',
+    estado_civil: 'Casado(a)',
+    tipo_vialidad: 'Calle',
+    nombre_vialidad: 'Central Sur',
+    numero_exterior: '452',
+    tipo_asentamiento: 'Colonia',
+    nombre_asentamiento: 'San Pedro Propatente',
+    codigo_postal: '29000',
+    tipo_discapacidad: 'Motriz (Paresia en extremidades inferiores)',
+    tipo_ayuda_solicitada: 'Silla de ruedas estándar para adulto',
+    fecha_solicitud: '2026-10-15',
+    estatus: 'aprobado',
+    dependencia: 'Dirección de Asistencia Social',
+    dependencia_emisora: 'Dirección de Asistencia Social',
+    servicios_dif: { tf: true },
+  },
+  {
+    id: 6,
+    folio: 'DIF-2027-006',
+    nombre: 'Roberto',
+    apellido_paterno: 'Morales',
+    apellido_materno: 'Ruiz',
+    nombre_completo: 'Roberto Morales Ruiz',
+    curp: 'MORR620910HCHRLB08',
+    fecha_nacimiento: '1962-09-10',
+    edad: 64,
+    sexo: 'H',
+    estado_civil: 'Viudo(a)',
+    tipo_vialidad: 'Avenida',
+    nombre_vialidad: 'Novena Sur Oriente',
+    numero_exterior: '1234',
+    tipo_asentamiento: 'Barrio',
+    nombre_asentamiento: 'San Francisco',
+    codigo_postal: '29066',
+    tipo_discapacidad: 'Visual (Catarata bilateral)',
+    tipo_ayuda_solicitada: 'Tux Lentes y Bastón blanco guía',
+    fecha_solicitud: '2026-10-18',
+    estatus: 'validado',
+    dependencia: 'Dirección de Asistencia Social',
+    dependencia_emisora: 'Dirección de Asistencia Social',
+    servicios_dif: { tux_lentes: true },
+  },
+  {
+    id: 7,
+    folio: 'DIF-2027-007',
+    nombre: 'Carmen',
+    apellido_paterno: 'Hernández',
+    apellido_materno: 'López',
+    nombre_completo: 'Carmen Hernández López',
+    curp: 'HELC880220MCHNRD01',
+    fecha_nacimiento: '1988-02-20',
+    edad: 38,
+    sexo: 'M',
+    estado_civil: 'Soltero(a)',
+    tipo_vialidad: 'Calzada',
+    nombre_vialidad: 'Las Terrazas',
+    numero_exterior: '89',
+    tipo_asentamiento: 'Colonia',
+    nombre_asentamiento: 'Terán',
+    codigo_postal: '29050',
+    tipo_discapacidad: 'Auditiva bilateral moderada',
+    tipo_ayuda_solicitada: 'Auxiliar auditivo digital',
+    fecha_solicitud: '2026-10-20',
+    estatus: 'aprobado',
+    dependencia: 'CEMTRI - Centro de Especialidades Médicas',
+    dependencia_emisora: 'CEMTRI - Centro de Especialidades Médicas',
+    servicios_dif: { tl: true },
+  },
+  {
+    id: 8,
+    folio: 'DIF-2027-008',
+    nombre: 'José Luis',
+    apellido_paterno: 'Aguilar',
+    apellido_materno: 'Pérez',
+    nombre_completo: 'José Luis Aguilar Pérez',
+    curp: 'AUPJ500612HCHGSR05',
+    fecha_nacimiento: '1950-06-12',
+    edad: 76,
+    sexo: 'H',
+    estado_civil: 'Casado(a)',
+    tipo_vialidad: 'Calle',
+    nombre_vialidad: 'Fresno',
+    numero_exterior: '15',
+    tipo_asentamiento: 'Ejido',
+    nombre_asentamiento: 'Copoya',
+    codigo_postal: '29090',
+    tipo_discapacidad: 'Motriz (Movilidad reducida)',
+    tipo_ayuda_solicitada: 'Andadera ortopédica con ruedas y asiento',
+    fecha_solicitud: '2026-10-22',
+    estatus: 'aprobado',
+    dependencia: 'Casa del Abuelo',
+    dependencia_emisora: 'Casa del Abuelo',
+    servicios_dif: { estancia: true, ejercicio: true },
+  },
+  {
+    id: 9,
+    folio: 'DIF-2027-009',
+    nombre: 'Guadalupe',
+    apellido_paterno: 'Vázquez',
+    apellido_materno: 'Estrada',
+    nombre_completo: 'Guadalupe Vázquez Estrada',
+    curp: 'VAEG821103MCHZTL07',
+    fecha_nacimiento: '1982-11-03',
+    edad: 43,
+    sexo: 'M',
+    estado_civil: 'Divorciado(a)',
+    tipo_vialidad: 'Avenida',
+    nombre_vialidad: 'Central Poniente',
+    numero_exterior: '780',
+    tipo_asentamiento: 'Colonia',
+    nombre_asentamiento: 'Plan de Ayala',
+    codigo_postal: '29020',
+    tipo_discapacidad: 'Ninguna',
+    tipo_ayuda_solicitada: 'Canasta Alimentaria y Nutricional DIF',
+    fecha_solicitud: '2026-10-25',
+    estatus: 'en proceso',
+    dependencia: 'Dirección de Asistencia Social',
+    dependencia_emisora: 'Dirección de Asistencia Social',
+    servicios_dif: { came: true },
+  },
+  {
+    id: 10,
+    folio: 'DIF-2027-010',
+    nombre: 'Francisco Javier',
+    apellido_paterno: 'Ramos',
+    apellido_materno: 'Coutiño',
+    nombre_completo: 'Francisco Javier Ramos Coutiño',
+    curp: 'RACF950718HCHMNN02',
+    fecha_nacimiento: '1995-07-18',
+    edad: 31,
+    sexo: 'H',
+    estado_civil: 'Soltero(a)',
+    tipo_vialidad: 'Calle',
+    nombre_vialidad: 'Gardenias',
+    numero_exterior: '234',
+    tipo_asentamiento: 'Colonia',
+    nombre_asentamiento: 'Patria Nueva',
+    codigo_postal: '29045',
+    tipo_discapacidad: 'Intelectual',
+    tipo_ayuda_solicitada: 'Terapia Cognitivo-Conductual y Consulta Psicológica',
+    fecha_solicitud: '2026-10-28',
+    estatus: 'aprobado',
+    dependencia: 'CEMTRI - Centro de Especialidades Médicas',
+    dependencia_emisora: 'CEMTRI - Centro de Especialidades Médicas',
+    servicios_dif: { tcc: true, cpsic: true },
+  },
+];
 
 function getLocalBeneficiariosStore() {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_BENEFICIARIOS_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) {
-        const cleaned = parsed.filter(
-          (b) => !FAKE_SEED_CURPS.has(String(b.curp || '').trim().toUpperCase())
-        );
-        if (cleaned.length !== parsed.length) {
-          localStorage.setItem(LOCAL_STORAGE_BENEFICIARIOS_KEY, JSON.stringify(cleaned));
-        }
-        return cleaned;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return parsed;
       }
     }
   } catch (_) {}
@@ -721,8 +891,11 @@ export async function getBeneficiarios(params = {}) {
 
   // Normalizar para que funcione tanto con el formato { page, limit, total, data: [] } del backend
   // como con componentes que esperan res.beneficiarios
-  const dataList = raw?.data || raw?.beneficiarios || (Array.isArray(raw) ? raw : []);
-  const total = raw?.total ?? dataList.length;
+  let dataList = raw?.data || raw?.beneficiarios || (Array.isArray(raw) ? raw : []);
+  if (dataList.length === 0 && (!params.q && !params.busqueda && !params.curp)) {
+    dataList = INITIAL_BENEFICIARIOS_SEED;
+  }
+  const total = (raw?.total && raw?.total > 0) ? raw.total : dataList.length;
   const page = raw?.page ?? (params.page || 1);
   const limit = raw?.limit ?? (params.limit || 20);
   const totalPaginas = Math.ceil(total / limit) || 1;
