@@ -67,8 +67,8 @@ const DEFAULT_LOCAL_USERS = [
  */
 export function isBackendFeatureAvailable(feature) {
   try {
-    if (typeof sessionStorage !== 'undefined') {
-      const val = sessionStorage.getItem(`padrones_feat_${feature}`);
+    if (typeof localStorage !== 'undefined') {
+      const val = localStorage.getItem(`padrones_feat_${feature}`);
       if (val === '0') return false;
     }
   } catch (_) {}
@@ -77,8 +77,8 @@ export function isBackendFeatureAvailable(feature) {
 
 export function setBackendFeatureAvailable(feature, available) {
   try {
-    if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.setItem(`padrones_feat_${feature}`, available ? '1' : '0');
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(`padrones_feat_${feature}`, available ? '1' : '0');
     }
   } catch (_) {}
 }
