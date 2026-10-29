@@ -66,10 +66,22 @@ const DEFAULT_LOCAL_USERS = [
  * inexistentes (404) o con errores internos de base de datos remota (500).
  */
 export function isBackendFeatureAvailable(feature) {
+  // Las rutas que no forman parte del API REST oficial de Railway (usuarios, permisos, auditoría)
+  // se administran directamente en el cliente para evitar errores 404 en la consola del navegador.
+  if (['usuarios', 'permisos', 'municipios', 'reportes', 'auditoria'].includes(feature)) {
+    try {
+      if (typeof localStorage !== 'undefined' && localStorage.getItem(`padrones_feat_${feature}`) === '1') {
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
   try {
     if (typeof localStorage !== 'undefined') {
       const val = localStorage.getItem(`padrones_feat_${feature}`);
       if (val === '0') return false;
+      if (val === '1') return true;
     }
   } catch (_) {}
   return true;
@@ -689,13 +701,11 @@ export async function getBeneficiarios(params = {}) {
         headers: getAuthHeaders(),
       });
       if (res.status >= 500 || res.status === 404) {
-        setBackendFeatureAvailable('beneficiarios', false);
         raw = buildLocalBeneficiariosResponse(params, q);
       } else {
         raw = await handleResponse(res);
       }
     } catch (_) {
-      setBackendFeatureAvailable('beneficiarios', false);
       raw = buildLocalBeneficiariosResponse(params, q);
     }
   }
@@ -1133,7 +1143,7 @@ export async function getProgramas() {
 }
 
 export async function getMunicipios() {
-  if (!hasValidBackendToken()) {
+  if (!hasValidBackendToken() || !isBackendFeatureAvailable('municipios')) {
     return [];
   }
   try {
@@ -1145,7 +1155,7 @@ export async function getMunicipios() {
 }
 
 export async function getReporteGeneral(params = {}) {
-  if (!hasValidBackendToken()) {
+  if (!hasValidBackendToken() || !isBackendFeatureAvailable('reportes')) {
     return { beneficiarios: [], total: 0 };
   }
   try {
@@ -1158,7 +1168,7 @@ export async function getReporteGeneral(params = {}) {
 }
 
 export async function getAuditoria(params = {}) {
-  if (!hasValidBackendToken()) {
+  if (!hasValidBackendToken() || !isBackendFeatureAvailable('auditoria')) {
     return [];
   }
   try {
